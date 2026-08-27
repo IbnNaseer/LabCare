@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipment Details — LabCare</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div id="app-layout">
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="equipment.html" style="color: var(--color-neutral); text-decoration: none; font-size: 16px;">
+              <i class="bi bi-arrow-left"></i>
+            </a>
+            <h1 class="page-title">Asset Overview</h1>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <a id="detail-report-btn" href="report-fault.html" class="btn-primary-custom" style="padding: 7px 14px; font-size: 13px;">
+            <i class="bi bi-flag"></i>
+            <span>Report Fault</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <main class="content-area">
+        <!-- Header Profile Card Grid -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;">
+          <!-- Left: Asset Attributes -->
+          <div class="card-custom">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                  <h2 style="font-size: 20px; font-weight: 700; color: var(--color-text-dark); margin: 0;" id="detail-name">-</h2>
+                  <span id="detail-status-pill" class="badge-pill status-active">Active</span>
+                </div>
+                <div style="font-size: 13px; color: var(--color-neutral);">Serial Number: <strong id="detail-serial" style="color: var(--color-text-dark);">-</strong></div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; padding-top: 14px; border-top: 1px solid var(--color-border);">
+              <div>
+                <div style="font-size: 11px; color: var(--color-neutral); font-weight: 600; text-transform: uppercase;">Category</div>
+                <div style="font-size: 14px; font-weight: 600;" id="detail-category">-</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--color-neutral); font-weight: 600; text-transform: uppercase;">Location</div>
+                <div style="font-size: 14px; font-weight: 600;" id="detail-location">-</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--color-neutral); font-weight: 600; text-transform: uppercase;">Est. Operational Usage</div>
+                <div style="font-size: 14px; font-weight: 600;" id="detail-usage">-</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--color-neutral); font-weight: 600; text-transform: uppercase;">Expected Lifespan</div>
+                <div style="font-size: 14px; font-weight: 600;" id="detail-lifespan">-</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--color-neutral); font-weight: 600; text-transform: uppercase;">Purchase Date</div>
+                <div style="font-size: 14px; font-weight: 600;" id="detail-purchase">-</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--color-neutral); font-weight: 600; text-transform: uppercase;">QR Tag Payload</div>
+                <div style="font-size: 12px; font-family: monospace; color: var(--color-primary); font-weight: 600;" id="detail-qr-tag">-</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Health Index Donut Summary Card -->
+          <div class="card-custom" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <div style="font-size: 14px; font-weight: 600; color: var(--color-text-dark); margin-bottom: 12px;">Current Equipment Health Index</div>
+            
+            <div style="width: 140px; height: 140px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+              <canvas id="miniHealthDonut"></canvas>
+              <div style="position: absolute; text-align: center; pointer-events: none;">
+                <div id="mini-ehi-value" style="font-size: 22px; font-weight: 800; color: var(--color-text-dark); line-height: 1;">100%</div>
+                <div id="mini-ehi-risk" style="font-size: 11px; font-weight: 700; margin-top: 2px;">Low Risk</div>
+              </div>
+            </div>
+
+            <div style="font-size: 11px; color: var(--color-neutral); line-height: 1.4;">
+              Estimated from scheduled class sessions and past repair history.
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Tabbed Navigation Area -->
+        <div class="card-custom" style="padding: 0; overflow: hidden;">
+          <div style="display: flex; border-bottom: 1px solid var(--color-border); background-color: var(--color-surface);">
+            <button class="tab-btn active" data-tab="history" style="padding: 14px 20px; font-size: 13px; font-weight: 600; background: none; border: none; cursor: pointer; border-bottom: 2px solid var(--color-primary); color: var(--color-primary);">
+              <i class="bi bi-clock-history"></i> Timeline History
+            </button>
+            <button class="tab-btn" data-tab="maintenance" style="padding: 14px 20px; font-size: 13px; font-weight: 600; background: none; border: none; cursor: pointer; color: var(--color-neutral);">
+              <i class="bi bi-wrench-adjustable"></i> Maintenance Logs
+            </button>
+            <button class="tab-btn" data-tab="faults" style="padding: 14px 20px; font-size: 13px; font-weight: 600; background: none; border: none; cursor: pointer; color: var(--color-neutral);">
+              <i class="bi bi-flag"></i> Fault Reports
+            </button>
+            <button class="tab-btn" data-tab="predictions" style="padding: 14px 20px; font-size: 13px; font-weight: 600; background: none; border: none; cursor: pointer; color: var(--color-neutral);">
+              <i class="bi bi-cpu"></i> Prediction Snapshots
+            </button>
+          </div>
+
+          <div id="tab-content-area" style="padding: 20px;">
+            <!-- Populated dynamically via equipment-detail.js -->
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/sidebar.js"></script>
+  <script src="../js/equipment-detail.js"></script>
+  <script>
+    if (auth.requireAuth()) {
+      renderSidebar('equipment');
+      loadEquipmentDetail();
+    }
+  </script>
+</body>
+</html>

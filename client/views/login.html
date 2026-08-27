@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — LabCare Fault Reporting & Maintenance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <!-- Left Hero Banner -->
+    <div class="auth-hero">
+      <a href="#" class="auth-hero-brand">
+        <i class="bi bi-shield-plus"></i>
+        <span>LabCare</span>
+      </a>
+      
+      <div class="auth-hero-content">
+        <h1 class="auth-hero-title">Smart Maintenance Today, Reliable Labs Tomorrow</h1>
+        <p class="auth-hero-tagline">
+          Centralized laboratory equipment fault reporting, QR-based asset tracking, and predictive health index forecasting.
+        </p>
+      </div>
+
+      <div class="auth-hero-footer">
+        Federal University Dutse &bull; FCP/CSC/22/1059
+      </div>
+    </div>
+
+    <!-- Right Auth Form -->
+    <div class="auth-form-wrapper">
+      <div class="auth-card">
+        <div class="auth-header">
+          <h2 class="auth-title">Welcome Back</h2>
+          <p class="auth-subtitle">Sign in with your university credentials to continue</p>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <form id="login-form">
+          <div style="margin-bottom: 18px;">
+            <label class="form-label-custom" for="email">Email Address</label>
+            <input type="email" id="email" class="form-control-custom" placeholder="name@fud.edu.ng" required autocomplete="email">
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label class="form-label-custom" for="password">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" class="form-control-custom" placeholder="Enter your password" required autocomplete="current-password">
+              <button type="button" class="password-toggle" id="toggle-password" aria-label="Toggle password visibility">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="auth-options">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--color-neutral);">
+              <input type="checkbox" id="remember-me" style="accent-color: var(--color-primary);">
+              <span>Remember me</span>
+            </label>
+            <a href="mailto:admin@labcare.local?subject=LabCare%20Password%20Reset%20Request">Forgot password?</a>
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn-primary-custom" style="width: 100%; padding: 12px;">
+            <span id="btn-text">Sign In</span>
+            <span id="btn-spinner" style="display: none;"><i class="bi bi-arrow-repeat spin"></i> Signing in...</span>
+          </button>
+        </form>
+
+        <div class="auth-footer-text">
+          Don't have an account? <a href="mailto:admin@fud.edu.ng">Contact administrator</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (auth.isAuthenticated()) {
+      window.location.href = 'dashboard.html';
+    }
+
+    // Toggle password visibility
+    const toggleBtn = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('password');
+    toggleBtn.addEventListener('click', () => {
+      const type = passwordInput.type === 'password' ? 'text' : 'password';
+      passwordInput.type = type;
+      toggleBtn.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+    });
+
+    // Form submission
+    const form = document.getElementById('login-form');
+    const alertBox = document.getElementById('alert-container');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      alertBox.innerHTML = '';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      btnText.style.display = 'none';
+      btnSpinner.style.display = 'inline-block';
+      submitBtn.disabled = true;
+
+      try {
+        await auth.login(email, password);
+        api.showToast('Login successful! Redirecting...', 'success');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 600);
+      } catch (err) {
+        const errorMsg = err.message || 'Invalid email or password. Please try again.';
+        alertBox.innerHTML = `
+          <div style="background-color: var(--color-danger-light); color: var(--color-danger); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>${errorMsg}</span>
+          </div>
+        `;
+        btnText.style.display = 'inline-block';
+        btnSpinner.style.display = 'none';
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

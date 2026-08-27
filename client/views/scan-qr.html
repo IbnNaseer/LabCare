@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan QR Code — LabCare</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+  <div id="app-layout">
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
+          <h1 class="page-title">Scan Equipment QR</h1>
+        </div>
+        <div class="topbar-right">
+          <span class="date-badge" id="current-date"></span>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <main class="content-area">
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;">
+          <!-- Left: Viewfinder Panel -->
+          <div class="card-custom">
+            <div class="card-header-flex">
+              <h2 class="card-title">Live QR Scanner</h2>
+              <span style="font-size: 12px; color: var(--color-neutral);"><i class="bi bi-camera-fill"></i> Camera active</span>
+            </div>
+
+            <div id="qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; background: #000; min-height: 280px; position: relative;"></div>
+
+            <div id="camera-error-msg" style="display: none; background-color: var(--color-warning-light); color: var(--color-warning); padding: 12px; border-radius: 8px; margin-top: 14px; font-size: 13px;">
+              <i class="bi bi-exclamation-triangle"></i> Camera permission required or not detected. You can enter the code below manually.
+            </div>
+
+            <!-- Manual Fallback Input -->
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border);">
+              <label class="form-label-custom" for="manual-qr-input">Or Enter Asset / QR Tag Manually</label>
+              <div style="display: flex; gap: 10px;">
+                <input type="text" id="manual-qr-input" class="form-control-custom" placeholder="e.g. EQUIP-1-SN982431">
+                <button type="button" id="manual-lookup-btn" class="btn-outline-custom">Lookup</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Resolved Equipment Card -->
+          <div class="card-custom" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="card-header-flex">
+                <h2 class="card-title">Resolved Asset</h2>
+                <span id="res-status-pill" class="badge-pill status-neutral"><span id="res-status">Waiting</span></span>
+              </div>
+
+              <div id="qr-resolve-error" style="display: none; background-color: var(--color-danger-light); color: var(--color-danger); padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;"></div>
+
+              <div id="scanner-empty-state" style="text-align: center; padding: 48px 20px; color: var(--color-neutral);">
+                <i class="bi bi-qr-code" style="font-size: 48px; color: var(--color-border); margin-bottom: 12px; display: block;"></i>
+                <div style="font-weight: 600; color: var(--color-text-dark); margin-bottom: 4px;">No Equipment Scanned Yet</div>
+                <p style="font-size: 13px;">Align the QR code sticker on the laboratory device within the frame.</p>
+              </div>
+
+              <!-- Result Card (shown when resolved) -->
+              <div id="scanned-result-card" style="display: none;">
+                <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 20px; padding: 14px; background-color: var(--color-surface); border-radius: var(--border-radius-md);">
+                  <div style="width: 48px; height: 48px; border-radius: 8px; background-color: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                    <i class="bi bi-cpu"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight: 700; font-size: 16px; color: var(--color-text-dark);" id="res-name">-</div>
+                    <div style="font-size: 12px; color: var(--color-neutral);">SN: <span id="res-serial">-</span></div>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                  <div style="background-color: #FAFAFA; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--color-border);">
+                    <div style="font-size: 11px; color: var(--color-neutral); font-weight: 600; text-transform: uppercase;">Category</div>
+                    <div style="font-size: 13px; font-weight: 600;" id="res-category">-</div>
+                  </div>
+                  <div style="background-color: #FAFAFA; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--color-border);">
+                    <div style="font-size: 11px; color: var(--color-neutral); font-weight: 600; text-transform: uppercase;">Location</div>
+                    <div style="font-size: 13px; font-weight: 600;" id="res-location">-</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" id="proceed-fault-btn" class="btn-primary-custom" style="width: 100%; padding: 12px; opacity: 0.5;" disabled>
+              <i class="bi bi-flag-fill"></i>
+              <span>Select Fault Type &rarr;</span>
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/sidebar.js"></script>
+  <script src="../js/scan-qr.js"></script>
+  <script>
+    if (auth.requireAuth()) {
+      renderSidebar('scan-qr');
+      initScanner();
+    }
+  </script>
+</body>
+</html>

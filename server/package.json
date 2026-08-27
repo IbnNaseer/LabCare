@@ -1,0 +1,40 @@
+{
+    "name":  "labcare-server",
+    "version":  "1.0.0",
+    "description":  "LabCare Backend - Laboratory Equipment Fault Reporting and Maintenance Prediction System",
+    "main":  "src/server.js",
+    "directories":  {
+                        "test":  "tests"
+                    },
+    "scripts":  {
+                    "dev":  "nodemon src/server.js",
+                    "start":  "node src/server.js",
+                    "test":  "jest --runInBand",
+                    "test:records": "node ../tests/runner.js",
+                    "seed":  "node seeders/seedDemoData.js"
+                },
+    "keywords":  [
+
+                 ],
+    "author":  "",
+    "license":  "ISC",
+    "type":  "commonjs",
+    "dependencies":  {
+                         "bcrypt":  "^6.0.0",
+                         "cors":  "^2.8.6",
+                         "dotenv":  "^17.4.2",
+                         "express":  "^5.2.1",
+                         "jsonwebtoken":  "^9.0.3",
+                         "multer":  "^2.2.0",
+                         "mysql2":  "^3.24.2",
+                         "node-cron":  "^4.6.0",
+                         "nodemailer":  "^9.0.5",
+                         "qrcode":  "^1.5.4",
+                         "sequelize":  "^6.37.8"
+                     },
+    "devDependencies":  {
+                            "jest":  "^30.4.2",
+                            "nodemon":  "^3.1.14",
+                            "supertest":  "^7.2.2"
+                        }
+}
