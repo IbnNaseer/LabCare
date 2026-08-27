@@ -2,49 +2,80 @@
 let resolvedEquipment = null;
 
 async function initScanner() {
-  const resultCard = document.getElementById('scanned-result-card');
-  const emptyState = document.getElementById('scanner-empty-state');
   const proceedBtn = document.getElementById('proceed-fault-btn');
   const manualInput = document.getElementById('manual-qr-input');
   const manualBtn = document.getElementById('manual-lookup-btn');
+  const snapBtn = document.getElementById('snap-qr-btn');
+  const fileInput = document.getElementById('qr-file-input');
 
-  manualBtn.addEventListener('click', () => {
-    const code = manualInput.value.trim();
-    if (code) resolveQrCode(code);
-  });
-
-  manualInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
+  // Manual search handlers
+  if (manualBtn && manualInput) {
+    manualBtn.addEventListener('click', () => {
       const code = manualInput.value.trim();
       if (code) resolveQrCode(code);
-    }
-  });
+    });
 
-  proceedBtn.addEventListener('click', () => {
-    if (resolvedEquipment) {
-      sessionStorage.setItem('selected_equipment', JSON.stringify(resolvedEquipment));
-      window.location.href = `report-fault.html?equipment_id=${resolvedEquipment.equipment_id}`;
-    }
-  });
+    manualInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const code = manualInput.value.trim();
+        if (code) resolveQrCode(code);
+      }
+    });
+  }
 
+  // Proceed button handler
+  if (proceedBtn) {
+    proceedBtn.addEventListener('click', () => {
+      if (resolvedEquipment) {
+        sessionStorage.setItem('selected_equipment', JSON.stringify(resolvedEquipment));
+        window.location.href = `report-fault.html?equipment_id=${resolvedEquipment.equipment_id}`;
+      }
+    });
+  }
+
+  // Initialize Html5Qrcode instance
   if (typeof Html5Qrcode !== 'undefined') {
+    html5QrCode = new Html5Qrcode('qr-reader');
+
+    // Snap Photo / File Upload Handler (Works 100% on all mobile devices & HTTP)
+    if (snapBtn && fileInput) {
+      snapBtn.addEventListener('click', () => {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', async (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+          const imageFile = e.target.files[0];
+          try {
+            api.showToast('Scanning image...', 'info');
+            const decodedText = await html5QrCode.scanFile(imageFile, false);
+            console.log('QR decoded from image:', decodedText);
+            resolveQrCode(decodedText);
+          } catch (err) {
+            console.warn('Failed to decode QR from image:', err);
+            api.showToast('Could not read QR code from image. Please ensure code is clear and in focus, or enter tag manually.', 'error');
+          }
+        }
+      });
+    }
+
+    // Try starting live webcam/video stream
     try {
-      html5QrCode = new Html5Qrcode('qr-reader');
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      const config = { fps: 10, qrbox: { width: 220, height: 220 } };
 
       await html5QrCode.start(
         { facingMode: 'environment' },
         config,
         (decodedText) => {
-          console.log('QR Scanned:', decodedText);
+          console.log('QR Scanned from camera:', decodedText);
           resolveQrCode(decodedText);
         },
         (errorMessage) => {
-          // scanning frame error (ignored)
+          // ignore scan frame misses
         }
       );
     } catch (err) {
-      console.warn('Camera access error or unsupported:', err);
+      console.warn('Live camera stream not supported or permission denied:', err);
       const errEl = document.getElementById('camera-error-msg');
       if (errEl) errEl.style.display = 'block';
     }

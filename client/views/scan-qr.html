@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -37,17 +37,25 @@
               <span style="font-size: 12px; color: var(--color-neutral);"><i class="bi bi-camera-fill"></i> Camera active</span>
             </div>
 
-            <div id="qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; background: #000; min-height: 280px; position: relative;"></div>
+            <div id="qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; background: #000; min-height: 240px; position: relative;"></div>
 
-            <div id="camera-error-msg" style="display: none; background-color: var(--color-warning-light); color: var(--color-warning); padding: 12px; border-radius: 8px; margin-top: 14px; font-size: 13px;">
-              <i class="bi bi-exclamation-triangle"></i> Camera permission required or not detected. You can enter the code below manually.
+            <!-- Snap Photo & Upload QR Input (Works on all mobile phones & HTTP) -->
+            <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display: none;">
+            
+            <button type="button" id="snap-qr-btn" class="btn-primary-custom" style="width: 100%; margin-top: 14px; padding: 11px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i class="bi bi-camera-fill" style="font-size: 16px;"></i>
+              <span>Take Photo / Upload QR Image</span>
+            </button>
+
+            <div id="camera-error-msg" style="display: none; background-color: var(--color-warning-light); color: var(--color-warning); padding: 12px; border-radius: 8px; margin-top: 14px; font-size: 13px; line-height: 1.4;">
+              <i class="bi bi-info-circle-fill"></i> <strong>Live video requires HTTPS on mobile.</strong> Tap <strong>Take Photo</strong> above to scan instantly with your phone's camera!
             </div>
 
             <!-- Manual Fallback Input -->
-            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border);">
-              <label class="form-label-custom" for="manual-qr-input">Or Enter Asset / QR Tag Manually</label>
+            <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border);">
+              <label class="form-label-custom" for="manual-qr-input">Or Enter Asset Tag Manually</label>
               <div style="display: flex; gap: 10px;">
-                <input type="text" id="manual-qr-input" class="form-control-custom" placeholder="e.g. EQUIP-1-SN982431">
+                <input type="text" id="manual-qr-input" class="form-control-custom" placeholder="e.g. EQUIP-1-SN-MC-89240">
                 <button type="button" id="manual-lookup-btn" class="btn-outline-custom">Lookup</button>
               </div>
             </div>
