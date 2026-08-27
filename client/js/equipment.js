@@ -131,30 +131,6 @@ function setupEquipmentSearch() {
   const openAddBtn = document.getElementById('open-add-modal-btn');
   const closeAddBtn = document.getElementById('close-add-modal-btn');
   const addForm = document.getElementById('add-equipment-form');
-  const autoGenBtn = document.getElementById('auto-gen-serial-btn');
-  const categorySelectAdd = document.getElementById('add-category');
-  const serialInput = document.getElementById('add-serial');
-
-  const getCategoryPrefix = (cat) => {
-    const prefixes = {
-      'Microscopy': 'SN-MC',
-      'Spectrometry': 'SN-SP',
-      'Centrifuges': 'SN-CF',
-      'Thermal / Heat': 'SN-EV',
-      'Measurement': 'SN-BL',
-      'Computing': 'SN-PC',
-    };
-    return prefixes[cat] || 'SN-EQ';
-  };
-
-  if (autoGenBtn && serialInput && categorySelectAdd) {
-    autoGenBtn.addEventListener('click', () => {
-      const prefix = getCategoryPrefix(categorySelectAdd.value);
-      const rand = Math.floor(10000 + Math.random() * 90000);
-      serialInput.value = `${prefix}-${rand}`;
-      api.showToast(`Generated: ${serialInput.value}`, 'info');
-    });
-  }
 
   const lifespanValueInput = document.getElementById('add-lifespan-value');
   const lifespanUnitSelect = document.getElementById('add-lifespan-unit');
@@ -183,7 +159,6 @@ function setupEquipmentSearch() {
     addForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('add-name').value.trim();
-      const serial_number = document.getElementById('add-serial').value.trim();
       const category = document.getElementById('add-category').value;
       const location = document.getElementById('add-location').value.trim();
       const lifespan_value = document.getElementById('add-lifespan-value').value;
@@ -193,7 +168,6 @@ function setupEquipmentSearch() {
       try {
         const res = await api.post('/equipment', {
           name,
-          serial_number: serial_number || undefined,
           category,
           location,
           lifespan_value,
