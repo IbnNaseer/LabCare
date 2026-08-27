@@ -146,6 +146,89 @@
     </div>
   </div>
 
+  <!-- Edit Equipment Modal (Admin & Technologist) -->
+  <div id="edit-equipment-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; border-radius: 12px; padding: 24px; max-width: 520px; width: 90%; box-shadow: var(--shadow-lg);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--color-text-dark); margin: 0;">Edit Equipment Asset</h2>
+          <span id="edit-serial-badge" style="font-size: 12px; font-family: monospace; background: var(--color-surface); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--color-border); font-weight: 600;">-</span>
+        </div>
+        <button type="button" id="close-edit-modal-btn" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--color-neutral);">&times;</button>
+      </div>
+
+      <form id="edit-equipment-form">
+        <input type="hidden" id="edit-equipment-id">
+        <input type="hidden" id="original-category">
+
+        <div style="margin-bottom: 14px;">
+          <label class="form-label-custom" for="edit-name">Equipment Name <span style="color: var(--color-danger);">*</span></label>
+          <input type="text" id="edit-name" class="form-control-custom" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label class="form-label-custom" for="edit-category">Category <span style="color: var(--color-danger);">*</span></label>
+            <select id="edit-category" class="form-select-custom">
+              <option value="Microscopy">Microscopy</option>
+              <option value="Spectrometry">Spectrometry</option>
+              <option value="Thermal / Heat">Thermal / Heat</option>
+              <option value="Centrifuges">Centrifuges</option>
+              <option value="Measurement">Measurement</option>
+              <option value="Computing">Computing</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label-custom" for="edit-location">Location / Room <span style="color: var(--color-danger);">*</span></label>
+            <input type="text" id="edit-location" class="form-control-custom" required>
+          </div>
+        </div>
+
+        <div id="category-change-notice" style="display: none; background-color: #FEF3C7; color: #92400E; padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 14px; border: 1px solid #FDE68A;">
+          <i class="bi bi-exclamation-circle-fill"></i> Category changed: A new Serial Number prefix and QR tag will be generated automatically.
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label class="form-label-custom" for="edit-status">Operational Status <span style="color: var(--color-danger);">*</span></label>
+            <select id="edit-status" class="form-select-custom">
+              <option value="Active">Active</option>
+              <option value="Under Repair">Under Repair</option>
+              <option value="Scrapped">Scrapped</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label-custom" for="edit-hours">Operational Hours (Recalibrate)</label>
+            <input type="number" id="edit-hours" class="form-control-custom" min="0" step="0.1">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+          <div>
+            <label class="form-label-custom">Expected Lifespan</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="edit-lifespan-value" class="form-control-custom" min="1" step="0.5" required style="flex: 1.2;">
+              <select id="edit-lifespan-unit" class="form-select-custom" style="flex: 1.2;">
+                <option value="Years" selected>Years</option>
+                <option value="Months">Months</option>
+              </select>
+            </div>
+            <div id="edit-lifespan-preview" style="font-size: 11px; color: var(--color-neutral); margin-top: 4px;"></div>
+          </div>
+          <div>
+            <label class="form-label-custom" for="edit-purchase-date">Purchase Date</label>
+            <input type="date" id="edit-purchase-date" class="form-control-custom">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn-outline-custom" onclick="document.getElementById('edit-equipment-modal').style.display='none'">Cancel</button>
+          <button type="submit" class="btn-primary-custom">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/sidebar.js"></script>

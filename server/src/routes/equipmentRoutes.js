@@ -12,6 +12,6 @@ router.get('/:id', equipmentController.getById);
 router.get('/:id/history', equipmentController.getHistory);
 
 router.post('/', authorize('Admin'), equipmentController.create);
-router.put('/:id', authorize('Admin'), equipmentController.update);
+router.put('/:id', authorize('Admin', 'Technologist'), equipmentController.update);
 
 module.exports = router;

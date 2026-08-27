@@ -278,7 +278,6 @@ exports.update = async (req, res, next) => {
     let {
       name,
       category,
-      serial_number,
       location,
       purchase_date,
       expected_lifespan_hours,
@@ -300,20 +299,52 @@ exports.update = async (req, res, next) => {
       });
     }
 
-    if (name !== undefined) equipment.name = name;
-    if (category !== undefined) equipment.category = category;
-    if (serial_number !== undefined) equipment.serial_number = serial_number;
-    if (location !== undefined) equipment.location = location;
-    if (purchase_date !== undefined) equipment.purchase_date = purchase_date;
+    let categoryChanged = false;
+    if (category !== undefined && category !== equipment.category) {
+      categoryChanged = true;
+      equipment.category = category;
+      // Regenerate serial number and QR code for the new category
+      const newSerial = await generateSerialNumber(category);
+      equipment.serial_number = newSerial;
+      const newQr = await generateQR(equipment.equipment_id, newSerial);
+      equipment.qr_code = newQr;
+    }
+
+    if (name !== undefined) equipment.name = name.trim();
+    if (location !== undefined) equipment.location = location ? location.trim() : null;
+    if (purchase_date !== undefined) equipment.purchase_date = purchase_date || null;
     if (expected_lifespan_hours !== undefined) equipment.expected_lifespan_hours = parseInt(expected_lifespan_hours, 10);
     if (operational_hours !== undefined) equipment.operational_hours = parseFloat(operational_hours);
     if (status !== undefined) equipment.status = status;
 
     await equipment.save();
 
+    // Recalculate EHI snapshot
+    const failureCount = await FaultReport.count({
+      where: { equipment_id: equipment.equipment_id, status: ['Resolved', 'Scrapped'] }
+    });
+
+    const currentEHI = calculateEHI({
+      operationalHours: parseFloat(equipment.operational_hours),
+      expectedLifespanHours: equipment.expected_lifespan_hours,
+      failureCount,
+      daysSinceLastService: 30,
+    });
+
+    await Prediction.create({
+      equipment_id: equipment.equipment_id,
+      ehi_score: currentEHI.ehi,
+      risk_level: currentEHI.riskLevel,
+      computed_at: new Date(),
+    });
+
+    const message = categoryChanged
+      ? `Equipment updated! Category changed: New Serial (${equipment.serial_number}) & QR tag generated.`
+      : 'Equipment updated successfully';
+
     return res.status(200).json({
       success: true,
-      message: 'Equipment updated successfully',
+      message,
       data: equipment,
     });
   } catch (err) {

@@ -1,3 +1,5 @@
+﻿let loadedEquipment = [];
+
 async function loadEquipment(searchQuery = '', categoryFilter = '') {
   const user = auth.getUser();
   if (user && user.role !== 'Admin') {
@@ -16,7 +18,8 @@ async function loadEquipment(searchQuery = '', categoryFilter = '') {
 
     const res = await api.get('/equipment', params);
     if (res.success && res.data) {
-      renderEquipmentTable(res.data.equipment || []);
+      loadedEquipment = res.data.equipment || [];
+      renderEquipmentTable(loadedEquipment);
     }
   } catch (err) {
     console.error('Failed to load equipment:', err);
@@ -29,6 +32,9 @@ async function loadEquipment(searchQuery = '', categoryFilter = '') {
 function renderEquipmentTable(items) {
   const tableBody = document.getElementById('equipment-table-body');
   const countEl = document.getElementById('equipment-count');
+  const user = auth.getUser();
+  const canEdit = user && ['Admin', 'Technologist'].includes(user.role);
+
   if (countEl) countEl.textContent = `(${items.length} assets)`;
 
   if (!items || items.length === 0) {
@@ -45,6 +51,12 @@ function renderEquipmentTable(items) {
     
     const riskClass = riskLevel === 'High' ? 'status-high' : riskLevel === 'Medium' ? 'status-medium' : 'status-low';
     const statusClass = item.status === 'Active' ? 'status-active' : item.status === 'Under Repair' ? 'status-under-repair' : 'status-scrapped';
+
+    const editBtnHtml = canEdit ? `
+      <button onclick="openEditModal(${item.equipment_id})" class="btn-outline-custom" style="padding: 4px 8px; font-size: 12px;" title="Edit Asset">
+        <i class="bi bi-pencil"></i>
+      </button>
+    ` : '';
 
     return `
       <tr>
@@ -65,10 +77,11 @@ function renderEquipmentTable(items) {
         </td>
         <td><span class="badge-pill ${statusClass}">${item.status}</span></td>
         <td style="text-align: right;">
-          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
             <a href="equipment-detail.html?id=${item.equipment_id}" class="btn-outline-custom" style="padding: 4px 10px; font-size: 12px;">
               View Details
             </a>
+            ${editBtnHtml}
             <button onclick="showQrModal('${item.equipment_id}', '${encodeURIComponent(item.name)}', '${item.serial_number}', '${item.qr_code}')" class="btn-outline-custom" style="padding: 4px 8px; font-size: 12px;" title="View QR Tag">
               <i class="bi bi-qr-code"></i>
             </button>
@@ -79,6 +92,41 @@ function renderEquipmentTable(items) {
   }).join('');
 
   if (tableBody) tableBody.innerHTML = html;
+}
+
+function openEditModal(equipmentId) {
+  const item = loadedEquipment.find(e => e.equipment_id === equipmentId);
+  if (!item) return;
+
+  const modal = document.getElementById('edit-equipment-modal');
+  if (!modal) return;
+
+  document.getElementById('edit-equipment-id').value = item.equipment_id;
+  document.getElementById('original-category').value = item.category || 'Microscopy';
+  document.getElementById('edit-name').value = item.name;
+  document.getElementById('edit-category').value = item.category || 'Microscopy';
+  document.getElementById('edit-location').value = item.location || '';
+  document.getElementById('edit-status').value = item.status || 'Active';
+  document.getElementById('edit-hours').value = parseFloat(item.operational_hours || 0).toFixed(1);
+  document.getElementById('edit-purchase-date').value = item.purchase_date || '';
+  document.getElementById('edit-serial-badge').textContent = `${item.serial_number}`;
+
+  // Calculate default years from expected lifespan hours
+  const totalHours = parseInt(item.expected_lifespan_hours || 6000, 10);
+  const yearsVal = (totalHours / 2000);
+  document.getElementById('edit-lifespan-value').value = Number.isInteger(yearsVal) ? yearsVal : yearsVal.toFixed(1);
+  document.getElementById('edit-lifespan-unit').value = 'Years';
+  
+  const previewEl = document.getElementById('edit-lifespan-preview');
+  if (previewEl) {
+    previewEl.innerHTML = `&approx; <strong>${totalHours.toLocaleString()}</strong> operational hours`;
+  }
+
+  // Reset category change warning
+  const noticeEl = document.getElementById('category-change-notice');
+  if (noticeEl) noticeEl.style.display = 'none';
+
+  modal.style.display = 'flex';
 }
 
 function showQrModal(id, encodedName, serial, qrCode) {
@@ -111,22 +159,23 @@ function showQrModal(id, encodedName, serial, qrCode) {
 
 function setupEquipmentSearch() {
   const searchInput = document.getElementById('equipment-search');
-  const categorySelect = document.getElementById('category-filter');
+  const categoryFilterSelect = document.getElementById('category-filter');
 
-  if (searchInput && categorySelect) {
+  if (searchInput && categoryFilterSelect) {
     let debounceTimer;
     searchInput.addEventListener('input', () => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        loadEquipment(searchInput.value.trim(), categorySelect.value);
+        loadEquipment(searchInput.value.trim(), categoryFilterSelect.value);
       }, 300);
     });
 
-    categorySelect.addEventListener('change', () => {
-      loadEquipment(searchInput.value.trim(), categorySelect.value);
+    categoryFilterSelect.addEventListener('change', () => {
+      loadEquipment(searchInput.value.trim(), categoryFilterSelect.value);
     });
   }
 
+  // --- Add Equipment Setup ---
   const addModal = document.getElementById('add-equipment-modal');
   const openAddBtn = document.getElementById('open-add-modal-btn');
   const closeAddBtn = document.getElementById('close-add-modal-btn');
@@ -184,6 +233,78 @@ function setupEquipmentSearch() {
         }
       } catch (err) {
         api.showToast(err.message || 'Failed to add equipment', 'error');
+      }
+    });
+  }
+
+  // --- Edit Equipment Setup ---
+  const editModal = document.getElementById('edit-equipment-modal');
+  const closeEditBtn = document.getElementById('close-edit-modal-btn');
+  const editForm = document.getElementById('edit-equipment-form');
+  const editCategorySelect = document.getElementById('edit-category');
+  const editLifespanVal = document.getElementById('edit-lifespan-value');
+  const editLifespanUnit = document.getElementById('edit-lifespan-unit');
+  const editLifespanPreview = document.getElementById('edit-lifespan-preview');
+
+  if (editCategorySelect) {
+    editCategorySelect.addEventListener('change', () => {
+      const orig = document.getElementById('original-category').value;
+      const notice = document.getElementById('category-change-notice');
+      if (notice) {
+        notice.style.display = editCategorySelect.value !== orig ? 'block' : 'none';
+      }
+    });
+  }
+
+  const updateEditLifespanPreview = () => {
+    if (!editLifespanVal || !editLifespanUnit || !editLifespanPreview) return;
+    const val = parseFloat(editLifespanVal.value) || 0;
+    const unit = editLifespanUnit.value;
+    const hours = unit === 'Months' ? Math.round(val * (2000 / 12)) : Math.round(val * 2000);
+    editLifespanPreview.innerHTML = `&approx; <strong>${hours.toLocaleString()}</strong> operational hours`;
+  };
+
+  if (editLifespanVal && editLifespanUnit) {
+    editLifespanVal.addEventListener('input', updateEditLifespanPreview);
+    editLifespanUnit.addEventListener('change', updateEditLifespanPreview);
+  }
+
+  if (closeEditBtn && editModal) {
+    closeEditBtn.addEventListener('click', () => editModal.style.display = 'none');
+  }
+
+  if (editForm) {
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-equipment-id').value;
+      const name = document.getElementById('edit-name').value.trim();
+      const category = document.getElementById('edit-category').value;
+      const location = document.getElementById('edit-location').value.trim();
+      const status = document.getElementById('edit-status').value;
+      const operational_hours = document.getElementById('edit-hours').value;
+      const lifespan_value = document.getElementById('edit-lifespan-value').value;
+      const lifespan_unit = document.getElementById('edit-lifespan-unit').value;
+      const purchase_date = document.getElementById('edit-purchase-date').value;
+
+      try {
+        const res = await api.put(`/equipment/${id}`, {
+          name,
+          category,
+          location,
+          status,
+          operational_hours,
+          lifespan_value,
+          lifespan_unit,
+          purchase_date: purchase_date || null
+        });
+
+        if (res.success) {
+          api.showToast(res.message || 'Equipment updated successfully!', 'success');
+          editModal.style.display = 'none';
+          loadEquipment();
+        }
+      } catch (err) {
+        api.showToast(err.message || 'Failed to update equipment', 'error');
       }
     });
   }
