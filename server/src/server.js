@@ -73,6 +73,22 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
+const os = require('os');
+
+const getLocalIP = () => {
+  const interfaces = os.networkInterfaces();
+  for (const devName in interfaces) {
+    const iface = interfaces[devName];
+    for (let i = 0; i < iface.length; i++) {
+      const alias = iface[i];
+      if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+        return alias.address;
+      }
+    }
+  }
+  return 'localhost';
+};
+
 async function startServer() {
   try {
     console.log('[Database] Authenticating connection...');
@@ -85,11 +101,14 @@ async function startServer() {
       console.log('[Database] Sequelize models synchronized with database schema.');
     }
 
-    app.listen(PORT, () => {
+    const localIP = getLocalIP();
+
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`=========================================`);
-      console.log(`  LabCare API Server is running`);
-      console.log(`  URL: http://localhost:${PORT}`);
-      console.log(`  Health: http://localhost:${PORT}/api/v1/health`);
+      console.log(`  🚀 LabCare API & Web App is running!`);
+      console.log(`  Local:   http://localhost:${PORT}`);
+      console.log(`  Network: http://${localIP}:${PORT} (Open on Phone/Tablet)`);
+      console.log(`  Health:  http://localhost:${PORT}/api/v1/health`);
       console.log(`  Environment: ${env.env}`);
       console.log(`=========================================`);
     });
@@ -98,7 +117,7 @@ async function startServer() {
     console.log('Ensure MySQL is running and DB credentials in .env are configured.');
     
     // Start HTTP server anyway to allow health checks and informative errors
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`[Warning] Server started on port ${PORT} with DB disconnected.`);
     });
   }

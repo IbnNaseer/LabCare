@@ -1,4 +1,6 @@
-﻿const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = (typeof window !== 'undefined' && window.location && window.location.origin)
+  ? `${window.location.origin}/api/v1`
+  : 'http://localhost:3000/api/v1';
 
 const api = {
   getToken() {
