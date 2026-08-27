@@ -124,8 +124,17 @@
             <input type="text" id="add-location" class="form-control-custom" placeholder="e.g. Lab 2, Bay 4">
           </div>
           <div>
-            <label class="form-label-custom" for="add-lifespan">Lifespan (Hours) <span style="color: var(--color-danger);">*</span></label>
-            <input type="number" id="add-lifespan" class="form-control-custom" placeholder="e.g. 5000" min="100" value="5000" required>
+            <label class="form-label-custom">Expected Lifespan <span style="color: var(--color-danger);">*</span></label>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="add-lifespan-value" class="form-control-custom" placeholder="e.g. 5" min="1" step="0.5" value="5" required style="flex: 1.2;">
+              <select id="add-lifespan-unit" class="form-select-custom" style="flex: 1.2;">
+                <option value="Years" selected>Years</option>
+                <option value="Months">Months</option>
+              </select>
+            </div>
+            <div id="lifespan-hours-preview" style="font-size: 11px; color: var(--color-neutral); margin-top: 4px;">
+              &approx; <strong>10,000</strong> operational hours
+            </div>
           </div>
         </div>
 

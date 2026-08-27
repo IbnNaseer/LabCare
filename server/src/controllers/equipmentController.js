@@ -179,6 +179,18 @@ const generateSerialNumber = async (category = '') => {
   return `${prefix}-${Date.now().toString().slice(-6)}`;
 };
 
+const convertLifespanToHours = (value, unit = 'Years') => {
+  const num = parseFloat(value);
+  if (isNaN(num) || num <= 0) return 6000;
+  if (unit === 'Months') {
+    return Math.round(num * (2000 / 12));
+  } else if (unit === 'Hours') {
+    return Math.round(num);
+  }
+  // Default is Years
+  return Math.round(num * 2000);
+};
+
 exports.create = async (req, res, next) => {
   try {
     let {
@@ -188,14 +200,20 @@ exports.create = async (req, res, next) => {
       location,
       purchase_date,
       expected_lifespan_hours,
+      lifespan_value,
+      lifespan_unit = 'Years',
       operational_hours = 0,
       status = 'Active',
     } = req.body;
 
+    if (lifespan_value) {
+      expected_lifespan_hours = convertLifespanToHours(lifespan_value, lifespan_unit);
+    }
+
     if (!name || !expected_lifespan_hours) {
       return res.status(400).json({
         success: false,
-        error: 'Name and expected lifespan hours are required',
+        error: 'Name and expected lifespan are required',
       });
     }
 
@@ -257,16 +275,22 @@ exports.create = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const {
+    let {
       name,
       category,
       serial_number,
       location,
       purchase_date,
       expected_lifespan_hours,
+      lifespan_value,
+      lifespan_unit = 'Years',
       operational_hours,
       status,
     } = req.body;
+
+    if (lifespan_value) {
+      expected_lifespan_hours = convertLifespanToHours(lifespan_value, lifespan_unit);
+    }
 
     const equipment = await Equipment.findByPk(id);
     if (!equipment) {

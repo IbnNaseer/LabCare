@@ -1,4 +1,4 @@
-﻿let currentEquipmentId = null;
+let currentEquipmentId = null;
 let healthMiniChart = null;
 
 async function loadEquipmentDetail() {
@@ -27,9 +27,9 @@ async function loadEquipmentDetail() {
 function renderEquipmentHeader(equipment, currentEHI) {
   document.getElementById('detail-name').textContent = equipment.name;
   document.getElementById('detail-serial').textContent = equipment.serial_number;
-  document.getElementById('detail-category').textContent = equipment.category || 'Laboratory Equipment';
-  document.getElementById('detail-location').textContent = equipment.location || 'N/A';
-  document.getElementById('detail-lifespan').textContent = `${equipment.expected_lifespan_hours} hrs`;
+  const totalHours = parseInt(equipment.expected_lifespan_hours || 0, 10);
+  const yearsEquivalent = (totalHours / 2000).toFixed(1);
+  document.getElementById('detail-lifespan').textContent = `${yearsEquivalent} yrs (${totalHours.toLocaleString()} hrs)`;
   document.getElementById('detail-usage').textContent = `${parseFloat(equipment.operational_hours || 0).toFixed(1)} hrs`;
   document.getElementById('detail-purchase').textContent = equipment.purchase_date || 'N/A';
   document.getElementById('detail-qr-tag').textContent = equipment.qr_code || 'N/A';

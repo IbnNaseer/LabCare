@@ -156,8 +156,28 @@ function setupEquipmentSearch() {
     });
   }
 
+  const lifespanValueInput = document.getElementById('add-lifespan-value');
+  const lifespanUnitSelect = document.getElementById('add-lifespan-unit');
+  const lifespanPreview = document.getElementById('lifespan-hours-preview');
+
+  const updateLifespanPreview = () => {
+    if (!lifespanValueInput || !lifespanUnitSelect || !lifespanPreview) return;
+    const val = parseFloat(lifespanValueInput.value) || 0;
+    const unit = lifespanUnitSelect.value;
+    const hours = unit === 'Months' ? Math.round(val * (2000 / 12)) : Math.round(val * 2000);
+    lifespanPreview.innerHTML = `&approx; <strong>${hours.toLocaleString()}</strong> operational hours`;
+  };
+
+  if (lifespanValueInput && lifespanUnitSelect) {
+    lifespanValueInput.addEventListener('input', updateLifespanPreview);
+    lifespanUnitSelect.addEventListener('change', updateLifespanPreview);
+  }
+
   if (openAddBtn && addModal) {
-    openAddBtn.addEventListener('click', () => addModal.style.display = 'flex');
+    openAddBtn.addEventListener('click', () => {
+      addModal.style.display = 'flex';
+      updateLifespanPreview();
+    });
     closeAddBtn.addEventListener('click', () => addModal.style.display = 'none');
 
     addForm.addEventListener('submit', async (e) => {
@@ -166,7 +186,8 @@ function setupEquipmentSearch() {
       const serial_number = document.getElementById('add-serial').value.trim();
       const category = document.getElementById('add-category').value;
       const location = document.getElementById('add-location').value.trim();
-      const expected_lifespan_hours = document.getElementById('add-lifespan').value;
+      const lifespan_value = document.getElementById('add-lifespan-value').value;
+      const lifespan_unit = document.getElementById('add-lifespan-unit').value;
       const purchase_date = document.getElementById('add-purchase-date').value;
 
       try {
@@ -175,7 +196,8 @@ function setupEquipmentSearch() {
           serial_number: serial_number || undefined,
           category,
           location,
-          expected_lifespan_hours,
+          lifespan_value,
+          lifespan_unit,
           purchase_date: purchase_date || null
         });
 
@@ -183,6 +205,7 @@ function setupEquipmentSearch() {
           api.showToast(`Equipment added! Serial: ${res.data.serial_number}`, 'success');
           addModal.style.display = 'none';
           addForm.reset();
+          updateLifespanPreview();
           loadEquipment();
         }
       } catch (err) {
