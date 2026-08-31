@@ -116,12 +116,26 @@ body {
 
 /* User Card in Sidebar */
 .sidebar-user {
-  padding: 16px;
+  padding: 14px 16px;
   border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   gap: 12px;
   background-color: #FAFAFA;
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-user:hover {
+  background-color: var(--color-neutral-light);
+}
+
+.sidebar-user.active-profile {
+  background-color: var(--color-primary-light);
+  border-left: 3px solid var(--color-primary);
+}
+
+.sidebar-user-profile-link:hover .user-name {
+  color: var(--color-primary);
 }
 
 .user-avatar {
@@ -135,6 +149,7 @@ body {
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
+  flex-shrink: 0;
 }
 
 .user-meta {
@@ -148,6 +163,7 @@ body {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  transition: color 0.15s ease;
 }
 
 .user-meta .user-role {
@@ -1001,3 +1017,118 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==================== MODALS ==================== */
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  padding: 16px;
+}
+
+.modal-backdrop-custom.show {
+  display: flex;
+}
+
+.modal-dialog-custom {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  max-width: 500px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header-custom {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header-custom h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--color-neutral);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close-btn:hover {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.modal-body-custom {
+  padding: 24px;
+}
+
+.modal-footer-custom {
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Password Input Wrapper with Toggle */
+.password-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-group .form-control-custom {
+  padding-right: 40px;
+}
+
+.password-input-group .password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--color-neutral);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.password-input-group .password-toggle-btn:hover {
+  color: var(--color-text-dark);
+}
+

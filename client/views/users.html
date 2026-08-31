@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management — LabCare</title>
+  <meta name="description" content="Manage university laboratory system user accounts, roles, and access credentials.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div id="app-layout">
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
+          <h1 class="page-title">User Management</h1>
+        </div>
+        <div class="topbar-right">
+          <span class="date-badge" id="current-date"></span>
+          <button type="button" id="open-add-user-modal-btn" class="btn-primary-custom" style="padding: 7px 14px; font-size: 13px;">
+            <i class="bi bi-person-plus-fill"></i>
+            <span>Add User</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <main class="content-area">
+        <!-- KPI Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div class="card-custom stat-card" style="padding: 16px;">
+            <div class="stat-icon primary" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-content">
+              <div class="stat-label">Total Accounts</div>
+              <div class="stat-number" id="kpi-total-users" style="font-size: 22px;">-</div>
+            </div>
+          </div>
+          <div class="card-custom stat-card" style="padding: 16px;">
+            <div class="stat-icon success" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-mortarboard-fill"></i></div>
+            <div class="stat-content">
+              <div class="stat-label">Students</div>
+              <div class="stat-number" id="kpi-students" style="font-size: 22px;">-</div>
+            </div>
+          </div>
+          <div class="card-custom stat-card" style="padding: 16px;">
+            <div class="stat-icon warning" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-eyedropper"></i></div>
+            <div class="stat-content">
+              <div class="stat-label">Technologists</div>
+              <div class="stat-number" id="kpi-technologists" style="font-size: 22px;">-</div>
+            </div>
+          </div>
+          <div class="card-custom stat-card" style="padding: 16px;">
+            <div class="stat-icon purple" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-tools"></i></div>
+            <div class="stat-content">
+              <div class="stat-label">Engineers</div>
+              <div class="stat-number" id="kpi-engineers" style="font-size: 22px;">-</div>
+            </div>
+          </div>
+          <div class="card-custom stat-card" style="padding: 16px;">
+            <div class="stat-icon danger" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-shield-lock-fill"></i></div>
+            <div class="stat-content">
+              <div class="stat-label">Administrators</div>
+              <div class="stat-number" id="kpi-admins" style="font-size: 22px;">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="filter-toolbar">
+          <select id="filter-role" class="form-select-custom">
+            <option value="">All Roles</option>
+            <option value="Student">Students</option>
+            <option value="Technologist">Lab Technologists</option>
+            <option value="Engineer">Maintenance Engineers</option>
+            <option value="Admin">Administrators</option>
+          </select>
+
+          <div class="search-input-wrapper">
+            <i class="bi bi-search"></i>
+            <input type="text" id="filter-search" class="form-control-custom" placeholder="Search by name or email...">
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card-custom" style="padding: 0; overflow: hidden;">
+          <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card-title" style="margin: 0;">Registered Users <span id="users-count" style="font-size: 13px; font-weight: 500; color: var(--color-neutral);"></span></h2>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="table-custom" id="users-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Date Joined</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 40px; color: var(--color-neutral);">
+                    <i class="bi bi-arrow-clockwise" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                    Loading user accounts...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div id="pagination-controls" style="padding: 14px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <span id="pagination-info" style="font-size: 12px; color: var(--color-neutral);"></span>
+            <div style="display: flex; gap: 6px;">
+              <button id="prev-page-btn" class="btn-outline-custom" style="padding: 6px 12px; font-size: 12px;" disabled>&larr; Prev</button>
+              <button id="next-page-btn" class="btn-outline-custom" style="padding: 6px 12px; font-size: 12px;" disabled>Next &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="add-user-modal" class="modal-backdrop-custom">
+    <div class="modal-dialog-custom">
+      <div class="modal-header-custom">
+        <h2>Add New User</h2>
+        <button type="button" class="modal-close-btn" data-modal="add-user-modal">&times;</button>
+      </div>
+      <form id="add-user-form">
+        <div class="modal-body-custom">
+          <div style="margin-bottom: 14px;">
+            <label class="form-label-custom" for="add-user-name">Full Name <span style="color: var(--color-danger);">*</span></label>
+            <input type="text" id="add-user-name" class="form-control-custom" placeholder="e.g. Fatima Adamu" required>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label class="form-label-custom" for="add-user-email">Email Address <span style="color: var(--color-danger);">*</span></label>
+            <input type="email" id="add-user-email" class="form-control-custom" placeholder="e.g. f.adamu@fud.edu.ng" required>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label class="form-label-custom" for="add-user-role">System Role <span style="color: var(--color-danger);">*</span></label>
+            <select id="add-user-role" class="form-select-custom" required>
+              <option value="Student">Student (Fault Reporting)</option>
+              <option value="Technologist">Lab Technologist (Triage & Routine Maintenance)</option>
+              <option value="Engineer">Maintenance Engineer (Repairs & Predictions)</option>
+              <option value="Admin">Administrator (Full System Control)</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 6px;">
+            <label class="form-label-custom" for="add-user-password">Initial Password <span style="color: var(--color-danger);">*</span></label>
+            <div class="password-input-group">
+              <input type="password" id="add-user-password" class="form-control-custom" placeholder="Min. 6 characters" minlength="6" required>
+              <button type="button" class="password-toggle-btn" data-target="add-user-password" aria-label="Toggle password visibility">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer-custom">
+          <button type="button" class="btn-outline-custom" data-modal="add-user-modal">Cancel</button>
+          <button type="submit" id="add-user-submit-btn" class="btn-primary-custom">
+            <i class="bi bi-plus-lg"></i> Create Account
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div id="edit-user-modal" class="modal-backdrop-custom">
+    <div class="modal-dialog-custom">
+      <div class="modal-header-custom">
+        <h2>Edit User Account</h2>
+        <button type="button" class="modal-close-btn" data-modal="edit-user-modal">&times;</button>
+      </div>
+      <form id="edit-user-form">
+        <input type="hidden" id="edit-user-id">
+        <div class="modal-body-custom">
+          <div style="margin-bottom: 14px;">
+            <label class="form-label-custom" for="edit-user-name">Full Name <span style="color: var(--color-danger);">*</span></label>
+            <input type="text" id="edit-user-name" class="form-control-custom" required>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label class="form-label-custom" for="edit-user-email">Email Address <span style="color: var(--color-danger);">*</span></label>
+            <input type="email" id="edit-user-email" class="form-control-custom" required>
+          </div>
+
+          <div style="margin-bottom: 6px;">
+            <label class="form-label-custom" for="edit-user-role">System Role <span style="color: var(--color-danger);">*</span></label>
+            <select id="edit-user-role" class="form-select-custom" required>
+              <option value="Student">Student</option>
+              <option value="Technologist">Lab Technologist</option>
+              <option value="Engineer">Maintenance Engineer</option>
+              <option value="Admin">Administrator</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer-custom">
+          <button type="button" class="btn-outline-custom" data-modal="edit-user-modal">Cancel</button>
+          <button type="submit" id="edit-user-submit-btn" class="btn-primary-custom">
+            <i class="bi bi-check2"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Reset Password Modal -->
+  <div id="reset-password-modal" class="modal-backdrop-custom">
+    <div class="modal-dialog-custom">
+      <div class="modal-header-custom">
+        <h2>Reset User Password</h2>
+        <button type="button" class="modal-close-btn" data-modal="reset-password-modal">&times;</button>
+      </div>
+      <form id="reset-password-form">
+        <input type="hidden" id="reset-user-id">
+        <div class="modal-body-custom">
+          <p style="font-size: 13px; color: var(--color-neutral); margin-bottom: 16px;">
+            Set a new password for <strong id="reset-user-name-label" style="color: var(--color-text-dark);">-</strong>.
+          </p>
+
+          <div style="margin-bottom: 6px;">
+            <label class="form-label-custom" for="reset-new-password">New Password <span style="color: var(--color-danger);">*</span></label>
+            <div class="password-input-group">
+              <input type="password" id="reset-new-password" class="form-control-custom" placeholder="Enter new password (min. 6 chars)" minlength="6" required>
+              <button type="button" class="password-toggle-btn" data-target="reset-new-password" aria-label="Toggle password visibility">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer-custom">
+          <button type="button" class="btn-outline-custom" data-modal="reset-password-modal">Cancel</button>
+          <button type="submit" id="reset-password-submit-btn" class="btn-primary-custom">
+            <i class="bi bi-key-fill"></i> Reset Password
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/sidebar.js"></script>
+  <script src="../js/users.js"></script>
+  <script>
+    if (auth.requireAuth(['Admin'])) {
+      renderSidebar('users');
+      initUsersManagement();
+    }
+  </script>
+</body>
+</html>

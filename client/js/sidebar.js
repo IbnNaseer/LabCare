@@ -13,6 +13,7 @@ function renderSidebar(activePage = '') {
     { id: 'equipment', label: 'Equipment', icon: 'bi-box-seam', href: 'equipment.html', roles: ['Technologist', 'Engineer', 'Admin'] },
     { id: 'maintenance', label: 'Maintenance', icon: 'bi-wrench-adjustable', href: 'maintenance.html', roles: ['Technologist', 'Engineer', 'Admin'] },
     { id: 'predictions', label: 'Predictions', icon: 'bi-graph-up-arrow', href: 'predictions.html', roles: ['Technologist', 'Engineer', 'Admin'] },
+    { id: 'users', label: 'User Management', icon: 'bi-people', href: 'users.html', roles: ['Admin'] },
   ];
 
   const visibleNav = navItems.filter(item => item.roles.includes(role));
@@ -41,12 +42,14 @@ function renderSidebar(activePage = '') {
         <ul class="sidebar-menu">
           ${navHtml}
         </ul>
-        <div class="sidebar-user">
-          <div class="user-avatar">${initials}</div>
-          <div class="user-meta">
-            <div class="user-name">${user.name || 'Lab User'}</div>
-            <span class="user-role">${user.role}</span>
-          </div>
+        <div class="sidebar-user ${activePage === 'profile' ? 'active-profile' : ''}">
+          <a href="profile.html" class="sidebar-user-profile-link" title="View Profile & Settings" style="display: flex; align-items: center; gap: 12px; flex: 1; text-decoration: none; min-width: 0; color: inherit;">
+            <div class="user-avatar">${initials}</div>
+            <div class="user-meta">
+              <div class="user-name">${user.name || 'Lab User'}</div>
+              <span class="user-role">${user.role}</span>
+            </div>
+          </a>
           <button class="logout-btn" title="Sign Out" onclick="auth.logout()">
             <i class="bi bi-box-arrow-right"></i>
           </button>
