@@ -34,7 +34,7 @@ const api = {
           localStorage.removeItem('labcare_token');
           localStorage.removeItem('labcare_user');
           if (!window.location.pathname.includes('login.html')) {
-            window.location.href = 'login.html';
+            window.location.href = 'login.html?expired=1';
           }
         }
         throw new Error(data.error || `HTTP error ${response.status}`);

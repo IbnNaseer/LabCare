@@ -26,7 +26,7 @@ module.exports = {
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'labcare_default_dev_secret_key_12345',
-    expiresIn: process.env.JWT_EXPIRES_IN || '2h',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   },
   smtp: {
     host: process.env.SMTP_HOST || '',

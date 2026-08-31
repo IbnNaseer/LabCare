@@ -80,6 +80,20 @@
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script>
+    // Check for expired session query param
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('expired') === '1') {
+      const alertBox = document.getElementById('alert-container');
+      if (alertBox) {
+        alertBox.innerHTML = `
+          <div style="background-color: var(--color-warning-light); color: #B45309; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(245, 158, 11, 0.2);">
+            <i class="bi bi-clock-history"></i>
+            <span>Your session has expired. Please sign in again to continue.</span>
+          </div>
+        `;
+      }
+    }
+
     // Redirect if already logged in
     if (auth.isAuthenticated()) {
       window.location.href = 'dashboard.html';
