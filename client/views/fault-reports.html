@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fault Reports — LabCare</title>
+  <meta name="description" content="Manage, triage, and resolve laboratory equipment fault reports with real-time status tracking.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div id="app-layout">
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
+          <h1 class="page-title">Fault Reports</h1>
+        </div>
+        <div class="topbar-right">
+          <span class="date-badge" id="current-date"></span>
+          <a href="report-fault.html" class="btn-primary-custom" style="padding: 7px 14px; font-size: 13px;">
+            <i class="bi bi-plus-circle"></i>
+            <span>New Report</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <main class="content-area">
+        <!-- KPI Summary Row (Staff Only) -->
+        <div id="fault-kpis" class="staff-only-section" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div class="card-custom stat-card" style="padding: 16px;">
+            <div class="stat-icon primary" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-flag"></i></div>
+            <div class="stat-content">
+              <div class="stat-label">Total Reports</div>
+              <div class="stat-number" id="kpi-total-reports" style="font-size: 22px;">-</div>
+            </div>
+          </div>
+          <div class="card-custom stat-card" style="padding: 16px;">
+            <div class="stat-icon danger" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-clock-history"></i></div>
+            <div class="stat-content">
+              <div class="stat-label">Pending</div>
+              <div class="stat-number" id="kpi-pending" style="font-size: 22px;">-</div>
+            </div>
+          </div>
+          <div class="card-custom stat-card" style="padding: 16px;">
+            <div class="stat-icon warning" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-wrench"></i></div>
+            <div class="stat-content">
+              <div class="stat-label">In-Progress</div>
+              <div class="stat-number" id="kpi-in-progress" style="font-size: 22px;">-</div>
+            </div>
+          </div>
+          <div class="card-custom stat-card" style="padding: 16px;">
+            <div class="stat-icon success" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-content">
+              <div class="stat-label">Resolved</div>
+              <div class="stat-number" id="kpi-resolved" style="font-size: 22px;">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="filter-toolbar">
+          <select id="filter-status" class="form-select-custom">
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="In-Progress">In-Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Scrapped">Scrapped</option>
+          </select>
+
+          <select id="filter-priority" class="form-select-custom">
+            <option value="">All Priorities</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+          </select>
+
+          <div class="search-input-wrapper">
+            <i class="bi bi-search"></i>
+            <input type="text" id="filter-search" class="form-control-custom" placeholder="Search equipment or description...">
+          </div>
+        </div>
+
+        <!-- Reports Table -->
+        <div class="card-custom" style="padding: 0; overflow: hidden;">
+          <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card-title" style="margin: 0;">All Fault Reports <span id="reports-count" style="font-size: 13px; font-weight: 500; color: var(--color-neutral);"></span></h2>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="table-custom" id="reports-table">
+              <thead>
+                <tr>
+                  <th>#ID</th>
+                  <th>Equipment</th>
+                  <th>Reporter</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Date Reported</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="reports-table-body">
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 40px; color: var(--color-neutral);">
+                    <i class="bi bi-arrow-clockwise" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                    Loading fault reports...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div id="pagination-controls" style="padding: 14px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <span id="pagination-info" style="font-size: 12px; color: var(--color-neutral);"></span>
+            <div style="display: flex; gap: 6px;">
+              <button id="prev-page-btn" class="btn-outline-custom" style="padding: 6px 12px; font-size: 12px;" disabled>← Prev</button>
+              <button id="next-page-btn" class="btn-outline-custom" style="padding: 6px 12px; font-size: 12px;" disabled>Next →</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Slide-Over Detail Panel -->
+  <div id="fault-detail-backdrop" class="slide-over-backdrop">
+    <div class="slide-over-panel" id="fault-detail-panel">
+      <!-- Header -->
+      <div class="slide-over-header">
+        <h2 id="detail-title">Fault Report #—</h2>
+        <button class="slide-over-close" id="close-detail-btn" aria-label="Close">&times;</button>
+      </div>
+
+      <!-- Body -->
+      <div class="slide-over-body" id="detail-body">
+        <!-- Status Pipeline -->
+        <div class="status-pipeline" id="detail-pipeline"></div>
+
+        <!-- Equipment Section -->
+        <div class="detail-section">
+          <div class="detail-section-title">Equipment Information</div>
+          <div style="background: var(--color-surface); border-radius: 8px; padding: 14px; border: 1px solid var(--color-border);">
+            <div style="font-weight: 700; font-size: 14px; color: var(--color-text-dark);" id="detail-equip-name">—</div>
+            <div style="font-size: 12px; color: var(--color-neutral); margin-top: 2px;">
+              SN: <span id="detail-equip-serial">—</span> &bull; <span id="detail-equip-location">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Details -->
+        <div class="detail-section">
+          <div class="detail-section-title">Report Details</div>
+          <div class="detail-info-grid">
+            <div class="detail-info-item">
+              <span class="info-label">Reporter</span>
+              <span class="info-value" id="detail-reporter">—</span>
+            </div>
+            <div class="detail-info-item">
+              <span class="info-label">Role</span>
+              <span class="info-value" id="detail-reporter-role">—</span>
+            </div>
+            <div class="detail-info-item">
+              <span class="info-label">Priority</span>
+              <span class="info-value" id="detail-priority">—</span>
+            </div>
+            <div class="detail-info-item">
+              <span class="info-label">Date Reported</span>
+              <span class="info-value" id="detail-date">—</span>
+            </div>
+            <div class="detail-info-item" id="detail-resolved-at-container" style="display: none;">
+              <span class="info-label">Resolved At</span>
+              <span class="info-value" id="detail-resolved-at">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-section">
+          <div class="detail-section-title">Fault Description</div>
+          <p id="detail-description" style="font-size: 13px; color: var(--color-text-dark); line-height: 1.7; background: var(--color-surface); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border);">—</p>
+        </div>
+
+        <!-- Photo Evidence -->
+        <div class="detail-section" id="detail-photo-section" style="display: none;">
+          <div class="detail-section-title">Photo Evidence</div>
+          <img id="detail-photo" class="fault-image-thumb" src="" alt="Fault photo evidence">
+        </div>
+
+        <!-- Resolve with Maintenance Log Form (hidden by default, shown on action) -->
+        <div class="detail-section" id="resolve-form-section" style="display: none;">
+          <div class="detail-section-title">Resolve — Log Maintenance Action</div>
+          <div class="resolution-form">
+            <div style="margin-bottom: 12px;">
+              <label class="form-label-custom" for="resolve-action">Action Taken / Repairs Performed <span style="color: var(--color-danger);">*</span></label>
+              <textarea id="resolve-action" class="form-control-custom" rows="3" placeholder="Describe the repair, calibration, or replacement performed..." required></textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <label class="form-label-custom" for="resolve-parts">Parts / Consumables Used</label>
+                <input type="text" id="resolve-parts" class="form-control-custom" placeholder="e.g. Fuse 5A, Halogen Lamp">
+              </div>
+              <div>
+                <label class="form-label-custom" for="resolve-cost">Cost (₦)</label>
+                <input type="number" id="resolve-cost" class="form-control-custom" placeholder="0.00" min="0" step="0.01" value="0">
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" id="submit-resolve-btn" class="btn-success-custom" style="flex: 1;">
+                <i class="bi bi-check-circle"></i> Submit & Resolve
+              </button>
+              <button type="button" id="cancel-resolve-btn" class="btn-outline-custom" style="padding: 9px 14px; font-size: 13px;">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Linked Maintenance Logs -->
+        <div class="detail-section" id="detail-logs-section" style="display: none;">
+          <div class="detail-section-title">Maintenance History</div>
+          <div id="detail-logs-list"></div>
+        </div>
+      </div>
+
+      <!-- Footer Actions (Staff Only) -->
+      <div class="slide-over-footer" id="detail-footer" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/sidebar.js"></script>
+  <script src="../js/fault-reports.js"></script>
+  <script>
+    if (auth.requireAuth()) {
+      renderSidebar('fault-reports');
+      initFaultReports();
+    }
+  </script>
+</body>
+</html>

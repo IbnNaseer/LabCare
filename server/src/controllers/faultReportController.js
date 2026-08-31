@@ -53,7 +53,7 @@ exports.create = async (req, res, next) => {
 
 exports.list = async (req, res, next) => {
   try {
-    const { status, priority, equipment_id, page = 1, limit = 50 } = req.query;
+    const { status, priority, equipment_id, search, page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
     const where = {};
 
@@ -74,15 +74,40 @@ exports.list = async (req, res, next) => {
       where.equipment_id = equipment_id;
     }
 
+    // Search in description
+    if (search && search.trim()) {
+      where.description = { [Op.like]: `%${search.trim()}%` };
+    }
+
+    // Equipment include — also filter by equipment name if searching
+    const equipmentInclude = {
+      model: Equipment,
+      as: 'equipment',
+      attributes: ['equipment_id', 'name', 'serial_number', 'location'],
+    };
+
+    if (search && search.trim()) {
+      // Search in equipment name as well — use required: false so we still get
+      // results that match description even if equipment name doesn't match.
+      // We combine with an OR on description.
+      delete where.description;
+      where[Op.or] = [
+        { description: { [Op.like]: `%${search.trim()}%` } },
+        { '$equipment.name$': { [Op.like]: `%${search.trim()}%` } },
+        { '$equipment.serial_number$': { [Op.like]: `%${search.trim()}%` } },
+      ];
+    }
+
     const { count, rows: reports } = await FaultReport.findAndCountAll({
       where,
       limit: parseInt(limit, 10),
       offset,
       order: [['created_at', 'DESC']],
       include: [
-        { model: Equipment, as: 'equipment', attributes: ['equipment_id', 'name', 'serial_number', 'location'] },
+        equipmentInclude,
         { model: User, as: 'reporter', attributes: ['user_id', 'name', 'email', 'role'] },
       ],
+      subQuery: false,
     });
 
     return res.status(200).json({
@@ -198,6 +223,37 @@ exports.updateStatus = async (req, res, next) => {
       success: true,
       message: `Report status updated to ${status}`,
       data: report,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const report = await FaultReport.findByPk(id);
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        error: 'Fault report not found',
+      });
+    }
+
+    // Prevent deletion of active in-progress reports
+    if (report.status === 'In-Progress') {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot delete an In-Progress fault report. Please resolve or scrap it first.',
+      });
+    }
+
+    await report.destroy();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Fault report deleted successfully',
     });
   } catch (err) {
     next(err);

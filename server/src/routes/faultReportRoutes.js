@@ -17,4 +17,10 @@ router.patch(
   faultReportController.updateStatus
 );
 
+router.delete(
+  '/:id',
+  authorize('Admin'),
+  faultReportController.delete
+);
+
 module.exports = router;

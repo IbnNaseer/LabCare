@@ -1,4 +1,4 @@
-﻿function renderSidebar(activePage = '') {
+function renderSidebar(activePage = '') {
   const user = auth.getUser();
   if (!user) return;
 
@@ -9,7 +9,8 @@
     { id: 'dashboard', label: 'Dashboard', icon: 'bi-grid-1x2', href: 'dashboard.html', roles: ['Student', 'Technologist', 'Engineer', 'Admin'] },
     { id: 'scan-qr', label: 'Scan QR Code', icon: 'bi-qr-code-scan', href: 'scan-qr.html', roles: ['Student', 'Technologist', 'Engineer', 'Admin'] },
     { id: 'report-fault', label: 'Report Fault', icon: 'bi-flag', href: 'report-fault.html', roles: ['Student', 'Technologist', 'Engineer', 'Admin'] },
-    { id: 'equipment', label: 'Equipment', icon: 'bi-box-seam', href: 'equipment.html', roles: ['Student', 'Technologist', 'Engineer', 'Admin'] },
+    { id: 'fault-reports', label: 'Fault Reports', icon: 'bi-flag-fill', href: 'fault-reports.html', roles: ['Student', 'Technologist', 'Engineer', 'Admin'] },
+    { id: 'equipment', label: 'Equipment', icon: 'bi-box-seam', href: 'equipment.html', roles: ['Technologist', 'Engineer', 'Admin'] },
     { id: 'maintenance', label: 'Maintenance', icon: 'bi-wrench-adjustable', href: 'maintenance.html', roles: ['Technologist', 'Engineer', 'Admin'] },
     { id: 'predictions', label: 'Predictions', icon: 'bi-graph-up-arrow', href: 'predictions.html', roles: ['Technologist', 'Engineer', 'Admin'] },
   ];
