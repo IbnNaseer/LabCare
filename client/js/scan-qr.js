@@ -1,4 +1,4 @@
-﻿let html5QrCode = null;
+let html5QrCode = null;
 let resolvedEquipment = null;
 
 async function initScanner() {
@@ -181,8 +181,16 @@ async function resolveQrCode(qrCodeString) {
   const emptyState = document.getElementById('scanner-empty-state');
   const proceedBtn = document.getElementById('proceed-fault-btn');
   const errorMsg = document.getElementById('qr-resolve-error');
+  const lookupBtn = document.getElementById('manual-lookup-btn');
 
   if (errorMsg) errorMsg.style.display = 'none';
+
+  let originalBtnHtml = '';
+  if (lookupBtn) {
+    originalBtnHtml = lookupBtn.innerHTML;
+    lookupBtn.disabled = true;
+    lookupBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+  }
 
   try {
     const res = await api.get(`/equipment/qr/${encodeURIComponent(qrCodeString)}`);
@@ -213,7 +221,13 @@ async function resolveQrCode(qrCodeString) {
     proceedBtn.style.opacity = '0.5';
     if (errorMsg) {
       errorMsg.style.display = 'block';
-      errorMsg.textContent = 'QR code not recognized. Please scan again or enter asset code manually.';
+      errorMsg.textContent = err.message || `No equipment found matching "${qrCodeString}". Please check the serial number.`;
+    }
+    api.showToast(err.message || 'Equipment not recognized', 'error');
+  } finally {
+    if (lookupBtn) {
+      lookupBtn.disabled = false;
+      lookupBtn.innerHTML = originalBtnHtml || '<i class="bi bi-search"></i> Lookup';
     }
   }
 }

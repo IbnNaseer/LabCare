@@ -126,9 +126,36 @@ exports.getById = async (req, res, next) => {
 exports.getByQR = async (req, res, next) => {
   try {
     const { qrCode } = req.params;
+    if (!qrCode || !qrCode.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Search code or asset tag is required',
+      });
+    }
+
+    const query = qrCode.trim();
+
+    // 1. Check exact QR code, exact serial number, or numeric ID
+    const conditions = [
+      { qr_code: query },
+      { serial_number: query },
+      { qr_code: { [Op.like]: `%${query}%` } },
+      { serial_number: { [Op.like]: `%${query}%` } },
+    ];
+
+    // If query is a pure number or "#1"
+    const parsedId = parseInt(query.replace(/^#|^EQUIP-/i, ''), 10);
+    if (!isNaN(parsedId) && parsedId > 0) {
+      conditions.unshift({ equipment_id: parsedId });
+    }
+
+    // Also try matching name
+    conditions.push({ name: { [Op.like]: `%${query}%` } });
 
     const equipment = await Equipment.findOne({
-      where: { qr_code: qrCode },
+      where: {
+        [Op.or]: conditions,
+      },
       include: [
         {
           model: Prediction,
@@ -142,7 +169,7 @@ exports.getByQR = async (req, res, next) => {
     if (!equipment) {
       return res.status(404).json({
         success: false,
-        error: 'Equipment with this QR code was not found',
+        error: `No equipment found matching asset tag "${query}". Please check the serial number on the device.`,
       });
     }
 

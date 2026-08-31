@@ -54,10 +54,15 @@
 
             <!-- Manual Fallback Input -->
             <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border);">
-              <label class="form-label-custom" for="manual-qr-input">Or Enter Asset Tag Manually</label>
+              <label class="form-label-custom" for="manual-qr-input">Or Enter Serial No. / Asset Tag Manually</label>
               <div style="display: flex; gap: 10px;">
-                <input type="text" id="manual-qr-input" class="form-control-custom" placeholder="e.g. EQUIP-1-SN-MC-89240">
-                <button type="button" id="manual-lookup-btn" class="btn-outline-custom">Lookup</button>
+                <input type="text" id="manual-qr-input" class="form-control-custom" placeholder="e.g. SN-MC-89240, EQUIP-1, or device name">
+                <button type="button" id="manual-lookup-btn" class="btn-primary-custom" style="padding: 0 18px; white-space: nowrap;">
+                  <i class="bi bi-search"></i> Lookup
+                </button>
+              </div>
+              <div style="font-size: 11px; color: var(--color-neutral); margin-top: 6px;">
+                You can enter the serial number printed on the device, the QR code text, or machine name.
               </div>
             </div>
           </div>
