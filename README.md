@@ -1,6 +1,5 @@
 # LabCare 🔬
 > **Web-Based Laboratory Equipment Fault Reporting, Maintenance Tracking, and Predictive Health System**  
-> *Undergraduate Degree Thesis Project &bull; Federal University Dutse (FCP/CSC/22/1059)*
 
 ---
 
