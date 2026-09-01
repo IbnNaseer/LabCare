@@ -13,7 +13,6 @@
     tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--color-danger); padding: 20px;">Failed to load predictions.</td></tr>';
   }
 
-  // Setup recalculate trigger (Admin)
   const recalcBtn = document.getElementById('recalculate-ehi-btn');
   if (recalcBtn) {
     recalcBtn.addEventListener('click', async () => {
@@ -39,7 +38,6 @@
 function renderPredictionsTriage(equipmentList) {
   const tableBody = document.getElementById('predictions-table-body');
 
-  // Sort ascending by EHI (worst health at the top for triage)
   equipmentList.sort((a, b) => {
     const aPred = a.predictions && a.predictions[0] ? parseFloat(a.predictions[0].ehi_score) : 100;
     const bPred = b.predictions && b.predictions[0] ? parseFloat(b.predictions[0].ehi_score) : 100;
@@ -57,7 +55,6 @@ function renderPredictionsTriage(equipmentList) {
     const riskLevel = latestPred ? latestPred.risk_level : 'Low';
     const riskClass = riskLevel === 'High' ? 'status-high' : riskLevel === 'Medium' ? 'status-medium' : 'status-low';
 
-    // Estimate predicted maintenance window based on score
     let forecastText = 'Normal Operation';
     if (riskLevel === 'High') {
       forecastText = '<span style="color: var(--color-danger); font-weight: 700;">Immediate (&lt; 7 days)</span>';

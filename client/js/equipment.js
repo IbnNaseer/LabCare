@@ -1,6 +1,6 @@
-﻿let loadedEquipment = [];
+let loadedEquipment = [];
 
-async function loadEquipment(searchQuery = '', categoryFilter = '') {
+async function loadEquipment(searchQuery = '', categoryFilter = '', statusFilter = '') {
   const user = auth.getUser();
   if (user && user.role !== 'Admin') {
     document.querySelectorAll('.admin-only-btn').forEach(el => el.style.display = 'none');
@@ -11,10 +11,19 @@ async function loadEquipment(searchQuery = '', categoryFilter = '') {
     tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--color-neutral);">Loading equipment...</td></tr>';
   }
 
+  const searchInput = document.getElementById('equipment-search');
+  const categorySelect = document.getElementById('category-filter');
+  const statusSelect = document.getElementById('status-filter');
+
+  const q = searchQuery !== '' ? searchQuery : (searchInput ? searchInput.value.trim() : '');
+  const cat = categoryFilter !== '' ? categoryFilter : (categorySelect ? categorySelect.value : '');
+  const stat = statusFilter !== '' ? statusFilter : (statusSelect ? statusSelect.value : '');
+
   try {
     const params = { limit: 100 };
-    if (searchQuery) params.search = searchQuery;
-    if (categoryFilter) params.category = categoryFilter;
+    if (q) params.search = q;
+    if (cat) params.category = cat;
+    if (stat) params.status = stat;
 
     const res = await api.get('/equipment', params);
     if (res.success && res.data) {
@@ -48,7 +57,7 @@ function renderEquipmentTable(items) {
     const latestPred = item.predictions && item.predictions[0];
     const ehiScore = latestPred ? parseFloat(latestPred.ehi_score) : 100;
     const riskLevel = latestPred ? latestPred.risk_level : 'Low';
-    
+
     const riskClass = riskLevel === 'High' ? 'status-high' : riskLevel === 'Medium' ? 'status-medium' : 'status-low';
     const statusClass = item.status === 'Active' ? 'status-active' : item.status === 'Under Repair' ? 'status-under-repair' : 'status-scrapped';
 
@@ -111,18 +120,16 @@ function openEditModal(equipmentId) {
   document.getElementById('edit-purchase-date').value = item.purchase_date || '';
   document.getElementById('edit-serial-badge').textContent = `${item.serial_number}`;
 
-  // Calculate default years from expected lifespan hours
   const totalHours = parseInt(item.expected_lifespan_hours || 6000, 10);
   const yearsVal = (totalHours / 2000);
   document.getElementById('edit-lifespan-value').value = Number.isInteger(yearsVal) ? yearsVal : yearsVal.toFixed(1);
   document.getElementById('edit-lifespan-unit').value = 'Years';
-  
+
   const previewEl = document.getElementById('edit-lifespan-preview');
   if (previewEl) {
     previewEl.innerHTML = `&approx; <strong>${totalHours.toLocaleString()}</strong> operational hours`;
   }
 
-  // Reset category change warning
   const noticeEl = document.getElementById('category-change-notice');
   if (noticeEl) noticeEl.style.display = 'none';
 
@@ -132,7 +139,8 @@ function openEditModal(equipmentId) {
 function showQrModal(id, encodedName, serial, qrCode) {
   const name = decodeURIComponent(encodedName);
   const qrImage = `../public/qrcodes/${qrCode}.png`;
-  
+  const serialValue = serial || qrCode;
+
   let modal = document.getElementById('qr-view-modal');
   if (!modal) {
     modal = document.createElement('div');
@@ -143,18 +151,29 @@ function showQrModal(id, encodedName, serial, qrCode) {
 
   modal.innerHTML = `
     <div style="background: white; border-radius: 12px; padding: 24px; max-width: 360px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">${name}</h3>
-      <div style="font-size: 12px; color: var(--color-neutral); margin-bottom: 16px;">Asset Tag: ${qrCode}</div>
-      <div style="background: #F8FAFC; padding: 16px; border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 16px;">
-        <img src="${qrImage}" alt="QR Code" style="width: 180px; height: 180px; display: block; margin: 0 auto;" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrCode}';">
+      <div class="printable-asset-tag" id="printable-asset-tag">
+        <div class="tag-name">${name}</div>
+        <div class="tag-serial">${serialValue}</div>
+        <div class="tag-qr-box">
+          <img src="${qrImage}" alt="QR Code" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrCode}';">
+        </div>
       </div>
+
       <div style="display: flex; gap: 10px;">
         <button class="btn-outline-custom" style="flex: 1;" onclick="document.getElementById('qr-view-modal').style.display='none'">Close</button>
-        <button class="btn-primary-custom" style="flex: 1;" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+        <button class="btn-primary-custom" style="flex: 1;" onclick="printAssetTag()"><i class="bi bi-printer"></i> Print</button>
       </div>
     </div>
   `;
   modal.style.display = 'flex';
+}
+
+function printAssetTag() {
+  document.body.classList.add('printing-qr-tag');
+  window.print();
+  setTimeout(() => {
+    document.body.classList.remove('printing-qr-tag');
+  }, 1000);
 }
 
 function setupEquipmentSearch() {
@@ -171,11 +190,17 @@ function setupEquipmentSearch() {
     });
 
     categoryFilterSelect.addEventListener('change', () => {
-      loadEquipment(searchInput.value.trim(), categoryFilterSelect.value);
+      loadEquipment();
     });
+
+    const statusFilterSelect = document.getElementById('status-filter');
+    if (statusFilterSelect) {
+      statusFilterSelect.addEventListener('change', () => {
+        loadEquipment();
+      });
+    }
   }
 
-  // --- Add Equipment Setup ---
   const addModal = document.getElementById('add-equipment-modal');
   const openAddBtn = document.getElementById('open-add-modal-btn');
   const closeAddBtn = document.getElementById('close-add-modal-btn');
@@ -237,7 +262,6 @@ function setupEquipmentSearch() {
     });
   }
 
-  // --- Edit Equipment Setup ---
   const editModal = document.getElementById('edit-equipment-modal');
   const closeEditBtn = document.getElementById('close-edit-modal-btn');
   const editForm = document.getElementById('edit-equipment-form');
@@ -301,7 +325,16 @@ function setupEquipmentSearch() {
         if (res.success) {
           api.showToast(res.message || 'Equipment updated successfully!', 'success');
           editModal.style.display = 'none';
-          loadEquipment();
+
+          const origItem = loadedEquipment.find(eq => eq.equipment_id === parseInt(id, 10));
+          if (origItem && origItem.status === 'Under Repair' && (status === 'Active' || status === 'Scrapped')) {
+            api.showToast(`Equipment ${status === 'Active' ? 'restored' : 'scrapped'}! Redirecting to maintenance log...`, 'success');
+            setTimeout(() => {
+              window.location.href = `maintenance.html?equipment_id=${id}&status=${status === 'Active' ? 'Resolved' : 'Scrapped'}`;
+            }, 600);
+          } else {
+            loadEquipment();
+          }
         }
       } catch (err) {
         api.showToast(err.message || 'Failed to update equipment', 'error');

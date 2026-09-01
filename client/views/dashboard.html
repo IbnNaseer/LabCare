@@ -11,12 +11,11 @@
 </head>
 <body>
   <div id="app-layout">
-    <!-- Sidebar -->
+
     <div id="sidebar-container"></div>
 
-    <!-- Main Wrapper -->
     <div class="main-wrapper">
-      <!-- Topbar -->
+
       <header class="topbar">
         <div class="topbar-left">
           <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
@@ -31,11 +30,10 @@
         </div>
       </header>
 
-      <!-- Content Area -->
       <main class="content-area">
-        <!-- ==================== STUDENT DASHBOARD VIEW ==================== -->
+
         <div id="student-dashboard-view" style="display: none;">
-          <!-- Hero Action Banner -->
+
           <div class="student-hero-banner">
             <div class="student-hero-content">
               <h2 id="student-greeting">Hello, Student!</h2>
@@ -53,7 +51,6 @@
             </div>
           </div>
 
-          <!-- Student Personalized KPIs -->
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
             <div class="card-custom stat-card" style="padding: 16px;">
               <div class="stat-icon primary" style="width: 42px; height: 42px; font-size: 18px;"><i class="bi bi-card-checklist"></i></div>
@@ -92,11 +89,10 @@
             </div>
           </div>
 
-          <!-- Student 2-Column Split: Active Report Tracker on Left, Quick Help on Right -->
           <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px;">
-            <!-- Left: Active Report Tracker & Recent Submissions -->
+
             <div>
-              <!-- Live Progress Tracker Card -->
+
               <div class="card-custom" style="margin-bottom: 24px;">
                 <div class="card-header-flex">
                   <h2 class="card-title">Live Fault Status Tracker</h2>
@@ -111,7 +107,6 @@
                 </div>
               </div>
 
-              <!-- My Recent Reports Table -->
               <div class="card-custom">
                 <div class="card-header-flex">
                   <h2 class="card-title">My Recent Submissions</h2>
@@ -123,9 +118,8 @@
               </div>
             </div>
 
-            <!-- Right: Fast Scanner Access & Reporting Guide -->
             <div>
-              <!-- QR Scanner Quick Card -->
+
               <div class="card-custom" style="background: linear-gradient(to bottom right, #F0FDF4, #DCFCE7); border-color: #86EFAC; margin-bottom: 24px;">
                 <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
                   <div style="width: 44px; height: 44px; border-radius: 10px; background: #10B981; color: white; display: flex; align-items: center; justify-content: center; font-size: 22px;">
@@ -144,7 +138,6 @@
                 </a>
               </div>
 
-              <!-- Lab Reporting Guidelines -->
               <div class="card-custom">
                 <div class="card-header-flex">
                   <h2 class="card-title">Laboratory Guidelines</h2>
@@ -183,15 +176,13 @@
           </div>
         </div>
 
-        <!-- ==================== STAFF DASHBOARD VIEW (Technologist, Engineer, Admin) ==================== -->
         <div id="staff-dashboard-view" style="display: none;">
-          <!-- Welcome Banner -->
+
           <div style="margin-bottom: 24px;">
             <h2 style="font-size: 18px; font-weight: 700; color: var(--color-text-dark);" id="staff-greeting">Welcome back!</h2>
             <p style="font-size: 13px; color: var(--color-neutral);">Here is the current overview of laboratory assets, fault reports, and equipment health status.</p>
           </div>
 
-          <!-- Row 1: KPI Cards Grid -->
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
             <div class="card-custom stat-card">
               <div class="stat-icon primary"><i class="bi bi-box-seam"></i></div>
@@ -232,9 +223,8 @@
             </div>
           </div>
 
-          <!-- Row 2: Analytics & Recent Faults -->
           <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;">
-            <!-- Left: Fault Line Chart -->
+
             <div class="card-custom">
               <div class="card-header-flex">
                 <h2 class="card-title">Fault Reports Overview</h2>
@@ -245,7 +235,6 @@
               </div>
             </div>
 
-            <!-- Right: Health Donut & Distribution -->
             <div class="card-custom">
               <div class="card-header-flex">
                 <h2 class="card-title">Equipment Health Index (EHI)</h2>
@@ -259,16 +248,15 @@
                 </div>
               </div>
               <div style="display: flex; justify-content: space-around; font-size: 12px; border-top: 1px solid var(--color-border); padding-top: 12px;">
-                <span style="color: var(--color-success); font-weight: 600;">● Low Risk</span>
-                <span style="color: var(--color-warning); font-weight: 600;">● Medium</span>
-                <span style="color: var(--color-danger); font-weight: 600;">● High Risk</span>
+                <span style="color: var(--color-success); font-weight: 600;">● Low (<span id="legend-low-count">0</span>)</span>
+                <span style="color: var(--color-warning); font-weight: 600;">● Med (<span id="legend-med-count">0</span>)</span>
+                <span style="color: var(--color-danger); font-weight: 600;">● High (<span id="legend-high-count">0</span>)</span>
               </div>
             </div>
           </div>
 
-          <!-- Row 3: Recent Faults & Quick Actions -->
           <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-            <!-- Recent Faults Table/List -->
+
             <div class="card-custom">
               <div class="card-header-flex">
                 <h2 class="card-title">Recent Fault Reports</h2>
@@ -279,7 +267,6 @@
               </div>
             </div>
 
-            <!-- Quick Actions Grid -->
             <div class="card-custom">
               <div class="card-header-flex">
                 <h2 class="card-title">Quick Actions</h2>
@@ -301,6 +288,14 @@
                   <i class="bi bi-cpu-fill" style="color: var(--color-accent-purple);"></i>
                   <span>Predictions</span>
                 </a>
+                <a href="audit-report.html" class="quick-action-btn">
+                  <i class="bi bi-file-earmark-bar-graph-fill" style="color: var(--color-primary);"></i>
+                  <span>Audit Report</span>
+                </a>
+                <a href="javascript:void(0)" onclick="ExportService.exportEquipmentCSV()" class="quick-action-btn">
+                  <i class="bi bi-filetype-csv" style="color: #059669;"></i>
+                  <span>Export CSV</span>
+                </a>
               </div>
             </div>
           </div>
@@ -311,6 +306,7 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/export.js"></script>
   <script src="../js/sidebar.js"></script>
   <script src="../js/dashboard.js"></script>
   <script>
@@ -318,6 +314,6 @@
       renderSidebar('dashboard');
       loadDashboard();
     }
-  </script>
+</script>
 </body>
 </html>

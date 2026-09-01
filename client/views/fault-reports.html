@@ -11,12 +11,11 @@
 </head>
 <body>
   <div id="app-layout">
-    <!-- Sidebar -->
+
     <div id="sidebar-container"></div>
 
-    <!-- Main Wrapper -->
     <div class="main-wrapper">
-      <!-- Topbar -->
+
       <header class="topbar">
         <div class="topbar-left">
           <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
@@ -24,6 +23,10 @@
         </div>
         <div class="topbar-right">
           <span class="date-badge" id="current-date"></span>
+          <button type="button" onclick="ExportService.exportFaultReportsCSV()" class="btn-outline-custom" style="padding: 7px 14px; font-size: 13px;">
+            <i class="bi bi-filetype-csv"></i>
+            <span>Export CSV</span>
+          </button>
           <a href="report-fault.html" class="btn-primary-custom" style="padding: 7px 14px; font-size: 13px;">
             <i class="bi bi-plus-circle"></i>
             <span>New Report</span>
@@ -31,9 +34,8 @@
         </div>
       </header>
 
-      <!-- Content Area -->
       <main class="content-area">
-        <!-- KPI Summary Row (Staff Only) -->
+
         <div id="fault-kpis" class="staff-only-section" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
           <div class="card-custom stat-card" style="padding: 16px;">
             <div class="stat-icon primary" style="width: 40px; height: 40px; font-size: 18px;"><i class="bi bi-flag"></i></div>
@@ -65,7 +67,6 @@
           </div>
         </div>
 
-        <!-- Filter Toolbar -->
         <div class="filter-toolbar">
           <select id="filter-status" class="form-select-custom">
             <option value="">All Statuses</option>
@@ -89,7 +90,6 @@
           </div>
         </div>
 
-        <!-- Reports Table -->
         <div class="card-custom" style="padding: 0; overflow: hidden;">
           <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
             <h2 class="card-title" style="margin: 0;">All Fault Reports <span id="reports-count" style="font-size: 13px; font-weight: 500; color: var(--color-neutral);"></span></h2>
@@ -119,7 +119,6 @@
             </table>
           </div>
 
-          <!-- Pagination -->
           <div id="pagination-controls" style="padding: 14px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
             <span id="pagination-info" style="font-size: 12px; color: var(--color-neutral);"></span>
             <div style="display: flex; gap: 6px;">
@@ -132,21 +131,18 @@
     </div>
   </div>
 
-  <!-- Slide-Over Detail Panel -->
   <div id="fault-detail-backdrop" class="slide-over-backdrop">
     <div class="slide-over-panel" id="fault-detail-panel">
-      <!-- Header -->
+
       <div class="slide-over-header">
         <h2 id="detail-title">Fault Report #—</h2>
         <button class="slide-over-close" id="close-detail-btn" aria-label="Close">&times;</button>
       </div>
 
-      <!-- Body -->
       <div class="slide-over-body" id="detail-body">
-        <!-- Status Pipeline -->
+
         <div class="status-pipeline" id="detail-pipeline"></div>
 
-        <!-- Equipment Section -->
         <div class="detail-section">
           <div class="detail-section-title">Equipment Information</div>
           <div style="background: var(--color-surface); border-radius: 8px; padding: 14px; border: 1px solid var(--color-border);">
@@ -157,7 +153,6 @@
           </div>
         </div>
 
-        <!-- Report Details -->
         <div class="detail-section">
           <div class="detail-section-title">Report Details</div>
           <div class="detail-info-grid">
@@ -184,19 +179,16 @@
           </div>
         </div>
 
-        <!-- Description -->
         <div class="detail-section">
           <div class="detail-section-title">Fault Description</div>
           <p id="detail-description" style="font-size: 13px; color: var(--color-text-dark); line-height: 1.7; background: var(--color-surface); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border);">—</p>
         </div>
 
-        <!-- Photo Evidence -->
         <div class="detail-section" id="detail-photo-section" style="display: none;">
           <div class="detail-section-title">Photo Evidence</div>
           <img id="detail-photo" class="fault-image-thumb" src="" alt="Fault photo evidence">
         </div>
 
-        <!-- Resolve with Maintenance Log Form (hidden by default, shown on action) -->
         <div class="detail-section" id="resolve-form-section" style="display: none;">
           <div class="detail-section-title">Resolve — Log Maintenance Action</div>
           <div class="resolution-form">
@@ -225,20 +217,19 @@
           </div>
         </div>
 
-        <!-- Linked Maintenance Logs -->
         <div class="detail-section" id="detail-logs-section" style="display: none;">
           <div class="detail-section-title">Maintenance History</div>
           <div id="detail-logs-list"></div>
         </div>
       </div>
 
-      <!-- Footer Actions (Staff Only) -->
       <div class="slide-over-footer" id="detail-footer" style="display: none;"></div>
     </div>
   </div>
 
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/export.js"></script>
   <script src="../js/sidebar.js"></script>
   <script src="../js/fault-reports.js"></script>
   <script>
@@ -246,6 +237,6 @@
       renderSidebar('fault-reports');
       initFaultReports();
     }
-  </script>
+</script>
 </body>
 </html>

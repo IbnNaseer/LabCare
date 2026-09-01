@@ -1,6 +1,3 @@
-/**
- * Admin User Management Page — users.js
- */
 
 let currentPage = 1;
 const pageLimit = 20;
@@ -16,8 +13,6 @@ async function initUsersManagement() {
   setupPasswordToggles();
   await loadUsers();
 }
-
-/* ========== DATA LOADING ========== */
 
 async function loadUsers() {
   const tableBody = document.getElementById('users-table-body');
@@ -74,8 +69,6 @@ function updateKpis(stats) {
   document.getElementById('kpi-engineers').textContent = stats.engineers || '0';
   document.getElementById('kpi-admins').textContent = stats.admins || '0';
 }
-
-/* ========== TABLE RENDERING ========== */
 
 function renderUsersTable(users) {
   const tableBody = document.getElementById('users-table-body');

@@ -11,12 +11,11 @@
 </head>
 <body>
   <div id="app-layout">
-    <!-- Sidebar -->
+
     <div id="sidebar-container"></div>
 
-    <!-- Main Wrapper -->
     <div class="main-wrapper">
-      <!-- Topbar -->
+
       <header class="topbar">
         <div class="topbar-left">
           <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
@@ -39,11 +38,10 @@
         </div>
       </header>
 
-      <!-- Content Area -->
       <main class="content-area">
-        <!-- Header Profile Card Grid -->
+
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;">
-          <!-- Left: Asset Attributes -->
+
           <div class="card-custom">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
               <div>
@@ -51,8 +49,11 @@
                   <h2 style="font-size: 20px; font-weight: 700; color: var(--color-text-dark); margin: 0;" id="detail-name">-</h2>
                   <span id="detail-status-pill" class="badge-pill status-active">Active</span>
                 </div>
-                <div style="font-size: 13px; color: var(--color-neutral);">Serial Number: <strong id="detail-serial" style="color: var(--color-text-dark);">-</strong></div>
+                <div style="font-size: 13px; color: var(--color-neutral);"><strong id="detail-serial" style="color: var(--color-text-dark);">-</strong></div>
               </div>
+              <button type="button" id="print-tag-btn" class="btn-outline-custom" style="padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="bi bi-qr-code"></i> Print Tag
+              </button>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; padding-top: 14px; border-top: 1px solid var(--color-border);">
@@ -83,10 +84,9 @@
             </div>
           </div>
 
-          <!-- Right: Health Index Donut Summary Card -->
           <div class="card-custom" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
             <div style="font-size: 14px; font-weight: 600; color: var(--color-text-dark); margin-bottom: 12px;">Current Equipment Health Index</div>
-            
+
             <div style="width: 140px; height: 140px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
               <canvas id="miniHealthDonut"></canvas>
               <div style="position: absolute; text-align: center; pointer-events: none;">
@@ -101,7 +101,6 @@
           </div>
         </div>
 
-        <!-- 4 Tabbed Navigation Area -->
         <div class="card-custom" style="padding: 0; overflow: hidden;">
           <div style="display: flex; border-bottom: 1px solid var(--color-border); background-color: var(--color-surface);">
             <button class="tab-btn active" data-tab="history" style="padding: 14px 20px; font-size: 13px; font-weight: 600; background: none; border: none; cursor: pointer; border-bottom: 2px solid var(--color-primary); color: var(--color-primary);">
@@ -116,17 +115,69 @@
             <button class="tab-btn" data-tab="predictions" style="padding: 14px 20px; font-size: 13px; font-weight: 600; background: none; border: none; cursor: pointer; color: var(--color-neutral);">
               <i class="bi bi-cpu"></i> Prediction Snapshots
             </button>
+            <button class="tab-btn" data-tab="schedules" style="padding: 14px 20px; font-size: 13px; font-weight: 600; background: none; border: none; cursor: pointer; color: var(--color-neutral);">
+              <i class="bi bi-calendar-week"></i> Class Timetable
+            </button>
           </div>
 
           <div id="tab-content-area" style="padding: 20px;">
-            <!-- Populated dynamically via equipment-detail.js -->
+
           </div>
         </div>
       </main>
     </div>
   </div>
 
-  <!-- Edit Equipment Modal (Admin & Technologist) -->
+  <div id="add-schedule-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; box-shadow: var(--shadow-lg);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--color-text-dark); margin: 0;">Add Weekly Class Practical Session</h2>
+        <button type="button" onclick="document.getElementById('add-schedule-modal').style.display='none'" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--color-neutral);">&times;</button>
+      </div>
+
+      <form id="add-schedule-form">
+        <div style="margin-bottom: 14px;">
+          <label class="form-label-custom" for="sched-lab-name">Course / Lab Room <span style="color: var(--color-danger);">*</span></label>
+          <input type="text" id="sched-lab-name" class="form-control-custom" placeholder="e.g. CSC 301 - Operating Systems Lab" required>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label class="form-label-custom" for="sched-day">Day of Week <span style="color: var(--color-danger);">*</span></label>
+          <select id="sched-day" class="form-select-custom" required>
+            <option value="Mon">Monday</option>
+            <option value="Tue">Tuesday</option>
+            <option value="Wed">Wednesday</option>
+            <option value="Thu">Thursday</option>
+            <option value="Fri">Friday</option>
+            <option value="Sat">Saturday</option>
+            <option value="Sun">Sunday</option>
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label class="form-label-custom" for="sched-start">Start Time <span style="color: var(--color-danger);">*</span></label>
+            <input type="time" id="sched-start" class="form-control-custom" value="09:00" required>
+          </div>
+          <div>
+            <label class="form-label-custom" for="sched-end">End Time <span style="color: var(--color-danger);">*</span></label>
+            <input type="time" id="sched-end" class="form-control-custom" value="12:00" required>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label class="form-label-custom" for="sched-duration">Session Duration (Hours) <span style="color: var(--color-danger);">*</span></label>
+          <input type="number" id="sched-duration" class="form-control-custom" step="0.5" min="0.5" max="12" value="3.0" required>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn-outline-custom" onclick="document.getElementById('add-schedule-modal').style.display='none'">Cancel</button>
+          <button type="submit" class="btn-primary-custom">Save Session</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="edit-equipment-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
     <div style="background: white; border-radius: 12px; padding: 24px; max-width: 520px; width: 90%; box-shadow: var(--shadow-lg);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -218,6 +269,6 @@
       renderSidebar('equipment');
       loadEquipmentDetail();
     }
-  </script>
+</script>
 </body>
 </html>

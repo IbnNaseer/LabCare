@@ -10,18 +10,21 @@
 </head>
 <body>
   <div id="app-layout">
-    <!-- Sidebar -->
+
     <div id="sidebar-container"></div>
 
-    <!-- Main Wrapper -->
     <div class="main-wrapper">
-      <!-- Topbar -->
+
       <header class="topbar">
         <div class="topbar-left">
           <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
           <h1 class="page-title">Equipment Inventory</h1>
         </div>
         <div class="topbar-right">
+          <button type="button" onclick="ExportService.exportEquipmentCSV()" class="btn-outline-custom" style="padding: 7px 14px; font-size: 13px;">
+            <i class="bi bi-filetype-csv"></i>
+            <span>Export CSV</span>
+          </button>
           <button type="button" id="open-add-modal-btn" class="btn-primary-custom admin-only-btn" style="padding: 7px 14px; font-size: 13px;">
             <i class="bi bi-plus-lg"></i>
             <span>Add Equipment</span>
@@ -29,16 +32,15 @@
         </div>
       </header>
 
-      <!-- Content Area -->
       <main class="content-area">
-        <!-- Search & Filter Controls -->
+
         <div class="card-custom" style="padding: 16px 20px; margin-bottom: 20px;">
           <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 240px; position: relative;">
               <input type="text" id="equipment-search" class="form-control-custom" placeholder="Search by name, serial number, location..." style="padding-left: 36px;">
               <i class="bi bi-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-neutral);"></i>
             </div>
-            <div style="width: 200px;">
+            <div style="width: 180px;">
               <select id="category-filter" class="form-select-custom">
                 <option value="">All Categories</option>
                 <option value="Microscopy">Microscopy</option>
@@ -49,10 +51,18 @@
                 <option value="Computing">Computing</option>
               </select>
             </div>
+            <div style="width: 220px;">
+              <select id="status-filter" class="form-select-custom">
+                <option value="">Operational Assets (Default)</option>
+                <option value="Active">Active Only</option>
+                <option value="Under Repair">Under Repair</option>
+                <option value="Scrapped">Archived / Scrapped</option>
+                <option value="All">All Assets</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <!-- Inventory Table -->
         <div class="card-custom" style="padding: 0; overflow: hidden;">
           <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
             <h2 class="card-title" style="margin: 0;">Laboratory Assets <span id="equipment-count" style="font-size: 13px; font-weight: 500; color: var(--color-neutral);"></span></h2>
@@ -72,7 +82,7 @@
                 </tr>
               </thead>
               <tbody id="equipment-table-body">
-                <!-- Populated dynamically via equipment.js -->
+
               </tbody>
             </table>
           </div>
@@ -81,7 +91,6 @@
     </div>
   </div>
 
-  <!-- Add Equipment Modal (Admin) -->
   <div id="add-equipment-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
     <div style="background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; box-shadow: var(--shadow-lg);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -146,7 +155,6 @@
     </div>
   </div>
 
-  <!-- Edit Equipment Modal (Admin & Technologist) -->
   <div id="edit-equipment-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
     <div style="background: white; border-radius: 12px; padding: 24px; max-width: 520px; width: 90%; box-shadow: var(--shadow-lg);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -231,6 +239,7 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/export.js"></script>
   <script src="../js/sidebar.js"></script>
   <script src="../js/equipment.js"></script>
   <script>
@@ -239,6 +248,6 @@
       loadEquipment();
       setupEquipmentSearch();
     }
-  </script>
+</script>
 </body>
 </html>

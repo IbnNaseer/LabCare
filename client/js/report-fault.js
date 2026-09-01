@@ -1,4 +1,4 @@
-﻿let currentStep = 1;
+let currentStep = 1;
 let selectedEquipment = null;
 let selectedPriority = 'Medium';
 let uploadedFile = null;
@@ -39,7 +39,12 @@ async function loadEquipmentList() {
       const select = document.getElementById('wizard-equip-select');
       if (select) {
         select.innerHTML = '<option value="">-- Choose laboratory equipment --</option>' +
-          equipmentList.map(e => `<option value="${e.equipment_id}">${e.name} (SN: ${e.serial_number} &bull; ${e.location || 'Lab'})</option>`).join('');
+          equipmentList.map(e => {
+            const isUnderRepair = e.status === 'Under Repair';
+            const isScrapped = e.status === 'Scrapped';
+            const suffix = isUnderRepair ? ' [⚠️ Under Repair / Active Report]' : isScrapped ? ' [❌ Decommissioned]' : '';
+            return `<option value="${e.equipment_id}" ${isUnderRepair || isScrapped ? 'style="color:#DC2626;"' : ''}>${e.name} (SN: ${e.serial_number})${suffix}</option>`;
+          }).join('');
       }
     }
   } catch (err) {
@@ -54,6 +59,9 @@ function selectEquipment(equipment) {
 
   const emptyEl = document.getElementById('preview-empty');
   const contentEl = document.getElementById('preview-content');
+  const warningEl = document.getElementById('equip-active-warning');
+  const warningText = document.getElementById('equip-active-warning-text');
+  const nextBtn = document.getElementById('wizard-next-btn');
 
   if (emptyEl) emptyEl.style.display = 'none';
   if (contentEl) contentEl.style.display = 'block';
@@ -63,6 +71,32 @@ function selectEquipment(equipment) {
   document.getElementById('prev-category').textContent = equipment.category || 'N/A';
   document.getElementById('prev-location').textContent = equipment.location || 'N/A';
   document.getElementById('prev-status').textContent = equipment.status;
+
+  if (equipment.status === 'Under Repair') {
+    if (warningEl) {
+      warningEl.style.display = 'block';
+      warningText.textContent = `This equipment (${equipment.name}) already has an active fault ticket being serviced by the laboratory technician team. Duplicate reports are blocked until resolved.`;
+    }
+    if (nextBtn && currentStep === 1) {
+      nextBtn.disabled = true;
+      nextBtn.style.opacity = '0.5';
+    }
+  } else if (equipment.status === 'Scrapped') {
+    if (warningEl) {
+      warningEl.style.display = 'block';
+      warningText.textContent = `This equipment has been decommissioned/scrapped and cannot receive new fault reports.`;
+    }
+    if (nextBtn && currentStep === 1) {
+      nextBtn.disabled = true;
+      nextBtn.style.opacity = '0.5';
+    }
+  } else {
+    if (warningEl) warningEl.style.display = 'none';
+    if (nextBtn && currentStep === 1) {
+      nextBtn.disabled = false;
+      nextBtn.style.opacity = '1';
+    }
+  }
 }
 
 function setupEventListeners() {
@@ -163,6 +197,14 @@ function validateCurrentStep() {
   if (currentStep === 1) {
     if (!selectedEquipment) {
       api.showToast('Please select an equipment item to continue', 'warning');
+      return false;
+    }
+    if (selectedEquipment.status === 'Under Repair') {
+      api.showToast('This equipment is already under repair with an active fault ticket', 'error');
+      return false;
+    }
+    if (selectedEquipment.status === 'Scrapped') {
+      api.showToast('This equipment has been decommissioned/scrapped', 'error');
       return false;
     }
     return true;

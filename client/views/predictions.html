@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -10,18 +10,25 @@
 </head>
 <body>
   <div id="app-layout">
-    <!-- Sidebar -->
+
     <div id="sidebar-container"></div>
 
-    <!-- Main Wrapper -->
     <div class="main-wrapper">
-      <!-- Topbar -->
+
       <header class="topbar">
         <div class="topbar-left">
           <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
           <h1 class="page-title">Predictive Maintenance Dashboard</h1>
         </div>
         <div class="topbar-right">
+          <a href="audit-report.html" class="btn-outline-custom" style="padding: 7px 14px; font-size: 13px;">
+            <i class="bi bi-file-earmark-bar-graph"></i>
+            <span>Audit Report</span>
+          </a>
+          <button type="button" onclick="ExportService.exportEquipmentCSV()" class="btn-outline-custom" style="padding: 7px 14px; font-size: 13px;">
+            <i class="bi bi-filetype-csv"></i>
+            <span>Export CSV</span>
+          </button>
           <button type="button" id="recalculate-ehi-btn" class="btn-primary-custom" style="padding: 7px 14px; font-size: 13px;">
             <i class="bi bi-arrow-clockwise"></i>
             <span>Recalculate EHI</span>
@@ -29,9 +36,8 @@
         </div>
       </header>
 
-      <!-- Content Area -->
       <main class="content-area">
-        <!-- Info Banner -->
+
         <div style="background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); color: white; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
           <div>
             <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">
@@ -43,7 +49,6 @@
           </div>
         </div>
 
-        <!-- Triage Table -->
         <div class="card-custom" style="padding: 0; overflow: hidden; margin-bottom: 16px;">
           <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border);">
             <h2 class="card-title" style="margin: 0;">At-Risk Equipment Triage</h2>
@@ -62,13 +67,12 @@
                 </tr>
               </thead>
               <tbody id="predictions-table-body">
-                <!-- Populated dynamically via predictions.js -->
+
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- Mandatory Specification Footnote Disclosure -->
         <div style="font-size: 12px; color: var(--color-neutral); text-align: center; padding: 8px;">
           <i class="bi bi-info-circle"></i> <em>Predictions are based on historical data and schedule-estimated operational hours, and may vary.</em>
         </div>
@@ -78,6 +82,7 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/export.js"></script>
   <script src="../js/sidebar.js"></script>
   <script src="../js/predictions.js"></script>
   <script>
@@ -85,6 +90,6 @@
       renderSidebar('predictions');
       loadPredictions();
     }
-  </script>
+</script>
 </body>
 </html>

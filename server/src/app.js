@@ -12,23 +12,18 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// Security & Parsing Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded fault images statically
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Serve client frontend statically
 app.use(express.static(path.join(__dirname, '..', '..', 'client')));
 
-// Root redirect to login page
 app.get('/', (req, res) => {
   res.redirect('/views/login.html');
 });
 
-// Health check endpoint
 app.get('/api/v1/health', (req, res) => {
 
   res.status(200).json({
@@ -39,15 +34,14 @@ app.get('/api/v1/health', (req, res) => {
   });
 });
 
-// API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/equipment', equipmentRoutes);
 app.use('/api/v1/fault-reports', faultReportRoutes);
 app.use('/api/v1/maintenance-logs', maintenanceRoutes);
+app.use('/api/v1/maintenance', maintenanceRoutes);
 app.use('/api/v1/predictions', predictionRoutes);
 app.use('/api/v1/users', userRoutes);
 
-// 404 Route Handler
 app.use((req, res, next) => {
   res.status(404).json({
     success: false,
@@ -55,7 +49,6 @@ app.use((req, res, next) => {
   });
 });
 
-// Global Error Handler
 app.use(errorHandler);
 
 module.exports = app;

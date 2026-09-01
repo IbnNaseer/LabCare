@@ -35,11 +35,9 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    // Role handling: Only Admin can create non-Student accounts
     let assignedRole = 'Student';
     const totalUsers = await User.count();
-    
-    // First user ever created in the system becomes Admin automatically
+
     if (totalUsers === 0) {
       assignedRole = 'Admin';
     } else if (req.user && req.user.role === 'Admin' && role) {
@@ -194,7 +192,6 @@ exports.updateProfile = async (req, res, next) => {
   try {
     const { name } = req.body;
 
-    // Only Admin is allowed to edit user names directly
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
@@ -234,4 +231,3 @@ exports.updateProfile = async (req, res, next) => {
     next(err);
   }
 };
-

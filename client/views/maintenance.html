@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -10,18 +10,21 @@
 </head>
 <body>
   <div id="app-layout">
-    <!-- Sidebar -->
+
     <div id="sidebar-container"></div>
 
-    <!-- Main Wrapper -->
     <div class="main-wrapper">
-      <!-- Topbar -->
+
       <header class="topbar">
         <div class="topbar-left">
           <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
           <h1 class="page-title">Maintenance & Service Logs</h1>
         </div>
         <div class="topbar-right">
+          <button type="button" onclick="ExportService.exportMaintenanceCSV()" class="btn-outline-custom" style="padding: 7px 14px; font-size: 13px;">
+            <i class="bi bi-filetype-csv"></i>
+            <span>Export CSV</span>
+          </button>
           <button type="button" id="open-log-modal-btn" class="btn-primary-custom" style="padding: 7px 14px; font-size: 13px;">
             <i class="bi bi-plus-lg"></i>
             <span>Log Repair Action</span>
@@ -29,9 +32,8 @@
         </div>
       </header>
 
-      <!-- Content Area -->
       <main class="content-area">
-        <!-- Maintenance Logs Table -->
+
         <div class="card-custom" style="padding: 0; overflow: hidden;">
           <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
             <h2 class="card-title" style="margin: 0;">Completed Repair & Service History <span id="log-count" style="font-size: 13px; font-weight: 500; color: var(--color-neutral);"></span></h2>
@@ -50,7 +52,7 @@
                 </tr>
               </thead>
               <tbody id="maintenance-table-body">
-                <!-- Populated dynamically via maintenance.js -->
+
               </tbody>
             </table>
           </div>
@@ -59,7 +61,6 @@
     </div>
   </div>
 
-  <!-- Log Maintenance Modal -->
   <div id="log-maintenance-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
     <div style="background: white; border-radius: 12px; padding: 24px; max-width: 520px; width: 90%; box-shadow: var(--shadow-lg);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -115,6 +116,7 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/export.js"></script>
   <script src="../js/sidebar.js"></script>
   <script src="../js/maintenance.js"></script>
   <script>
@@ -122,6 +124,6 @@
       renderSidebar('maintenance');
       loadMaintenance();
     }
-  </script>
+</script>
 </body>
 </html>

@@ -27,7 +27,6 @@ exports.list = async (req, res, next) => {
       order: [['created_at', 'DESC']],
     });
 
-    // Compute role count distribution for KPI cards
     const [totalStudents, totalTechs, totalEngineers, totalAdmins] = await Promise.all([
       User.count({ where: { role: 'Student' } }),
       User.count({ where: { role: 'Technologist' } }),
@@ -180,7 +179,6 @@ exports.update = async (req, res, next) => {
         });
       }
 
-      // Prevent removing the last admin
       if (user.role === 'Admin' && role !== 'Admin') {
         const adminCount = await User.count({ where: { role: 'Admin' } });
         if (adminCount <= 1) {
@@ -273,7 +271,6 @@ exports.delete = async (req, res, next) => {
       }
     }
 
-    // Check if user has associated fault reports or maintenance logs
     const [faultCount, logCount] = await Promise.all([
       FaultReport.count({ where: { reported_by: id } }),
       MaintenanceLog.count({ where: { technician_id: id } }),

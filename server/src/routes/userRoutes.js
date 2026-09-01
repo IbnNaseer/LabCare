@@ -4,7 +4,6 @@ const userController = require('../controllers/userController');
 const authenticate = require('../middleware/authenticate');
 const authorize = require('../middleware/authorize');
 
-// All user management routes require Admin privileges
 router.use(authenticate, authorize('Admin'));
 
 router.get('/', userController.list);

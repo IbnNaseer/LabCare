@@ -16,6 +16,11 @@ router.patch(
   authorize('Technologist', 'Engineer', 'Admin'),
   faultReportController.updateStatus
 );
+router.put(
+  '/:id/status',
+  authorize('Technologist', 'Engineer', 'Admin'),
+  faultReportController.updateStatus
+);
 
 router.delete(
   '/:id',

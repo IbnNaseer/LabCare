@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const { FaultReport, Equipment, User, MaintenanceLog } = require('../models');
+const { recalculateSingleEquipment } = require('../services/ehiService');
 
 exports.create = async (req, res, next) => {
   try {
@@ -20,6 +21,36 @@ exports.create = async (req, res, next) => {
       });
     }
 
+    if (equipment.status === 'Scrapped') {
+      return res.status(400).json({
+        success: false,
+        error: 'This equipment is decommissioned/scrapped and cannot receive new fault reports.',
+      });
+    }
+
+    const activeFault = await FaultReport.findOne({
+      where: {
+        equipment_id: parseInt(equipment_id, 10),
+        status: { [Op.in]: ['Pending', 'In-Progress'] },
+      },
+      include: [
+        { model: User, as: 'reporter', attributes: ['name'] },
+      ],
+    });
+
+    if (activeFault) {
+      return res.status(409).json({
+        success: false,
+        error: `This equipment (${equipment.name}) already has an active fault report (#${activeFault.report_id} - ${activeFault.status}). Duplicate reports are blocked until the current issue is resolved.`,
+        data: {
+          activeReportId: activeFault.report_id,
+          status: activeFault.status,
+          priority: activeFault.priority,
+          reportedAt: activeFault.created_at,
+        },
+      });
+    }
+
     let image_path = null;
     if (req.file) {
       image_path = `/uploads/fault-reports/${req.file.filename}`;
@@ -33,6 +64,11 @@ exports.create = async (req, res, next) => {
       image_path,
       status: 'Pending',
     });
+
+    if (equipment.status !== 'Under Repair') {
+      equipment.status = 'Under Repair';
+      await equipment.save();
+    }
 
     const populatedReport = await FaultReport.findByPk(report.report_id, {
       include: [
@@ -57,7 +93,6 @@ exports.list = async (req, res, next) => {
     const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
     const where = {};
 
-    // Role-based visibility: Students can ONLY see their own reports
     if (req.user.role === 'Student') {
       where.reported_by = req.user.user_id;
     }
@@ -74,12 +109,10 @@ exports.list = async (req, res, next) => {
       where.equipment_id = equipment_id;
     }
 
-    // Search in description
     if (search && search.trim()) {
       where.description = { [Op.like]: `%${search.trim()}%` };
     }
 
-    // Equipment include — also filter by equipment name if searching
     const equipmentInclude = {
       model: Equipment,
       as: 'equipment',
@@ -87,9 +120,7 @@ exports.list = async (req, res, next) => {
     };
 
     if (search && search.trim()) {
-      // Search in equipment name as well — use required: false so we still get
-      // results that match description even if equipment name doesn't match.
-      // We combine with an OR on description.
+
       delete where.description;
       where[Op.or] = [
         { description: { [Op.like]: `%${search.trim()}%` } },
@@ -147,7 +178,6 @@ exports.getById = async (req, res, next) => {
       });
     }
 
-    // Role check: Students cannot view reports made by other students
     if (req.user.role === 'Student' && report.reported_by !== req.user.user_id) {
       return res.status(403).json({
         success: false,
@@ -191,7 +221,7 @@ exports.updateStatus = async (req, res, next) => {
     report.status = status;
     if (status === 'Resolved') {
       report.resolved_at = new Date();
-      // If equipment was under repair, check if other pending faults exist
+
       if (report.equipment && report.equipment.status === 'Under Repair') {
         const activeFaultsCount = await FaultReport.count({
           where: {
@@ -219,6 +249,8 @@ exports.updateStatus = async (req, res, next) => {
 
     await report.save();
 
+    await recalculateSingleEquipment(report.equipment_id);
+
     return res.status(200).json({
       success: true,
       message: `Report status updated to ${status}`,
@@ -241,7 +273,6 @@ exports.delete = async (req, res, next) => {
       });
     }
 
-    // Prevent deletion of active in-progress reports
     if (report.status === 'In-Progress') {
       return res.status(400).json({
         success: false,

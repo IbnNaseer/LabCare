@@ -11,13 +11,13 @@
 </head>
 <body>
   <div class="auth-container">
-    <!-- Left Hero Banner -->
+
     <div class="auth-hero">
       <a href="#" class="auth-hero-brand">
         <i class="bi bi-shield-plus"></i>
         <span>LabCare</span>
       </a>
-      
+
       <div class="auth-hero-content">
         <h1 class="auth-hero-title">Smart Maintenance Today, Reliable Labs Tomorrow</h1>
         <p class="auth-hero-tagline">
@@ -30,7 +30,6 @@
       </div>
     </div>
 
-    <!-- Right Auth Form -->
     <div class="auth-form-wrapper">
       <div class="auth-card">
         <div class="auth-header">
@@ -80,7 +79,6 @@
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script>
-    // Check for expired session query param
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('expired') === '1') {
       const alertBox = document.getElementById('alert-container');
@@ -94,12 +92,10 @@
       }
     }
 
-    // Redirect if already logged in
     if (auth.isAuthenticated()) {
       window.location.href = 'dashboard.html';
     }
 
-    // Toggle password visibility
     const toggleBtn = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
     toggleBtn.addEventListener('click', () => {
@@ -108,7 +104,6 @@
       toggleBtn.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
     });
 
-    // Form submission
     const form = document.getElementById('login-form');
     const alertBox = document.getElementById('alert-container');
     const submitBtn = document.getElementById('submit-btn');
@@ -145,6 +140,6 @@
         submitBtn.disabled = false;
       }
     });
-  </script>
+</script>
 </body>
 </html>

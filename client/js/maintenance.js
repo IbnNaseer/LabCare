@@ -1,4 +1,4 @@
-﻿let equipmentList = [];
+let equipmentList = [];
 let pendingFaults = [];
 
 async function loadMaintenance() {
@@ -65,11 +65,9 @@ function setupMaintenanceModal() {
   const equipSelect = document.getElementById('maint-equipment');
   const faultSelect = document.getElementById('maint-fault-report');
 
-  // Populate equipment dropdown
   equipSelect.innerHTML = '<option value="">-- Select equipment --</option>' +
     equipmentList.map(e => `<option value="${e.equipment_id}">${e.name} (${e.serial_number})</option>`).join('');
 
-  // Populate pending faults dropdown
   faultSelect.innerHTML = '<option value="">-- None (Routine Maintenance) --</option>' +
     pendingFaults.map(f => `<option value="${f.report_id}">Fault #${f.report_id}: ${f.equipment?.name} - ${f.description.substring(0, 40)}...</option>`).join('');
 
@@ -106,5 +104,33 @@ function setupMaintenanceModal() {
         api.showToast(err.message || 'Failed to log maintenance', 'error');
       }
     });
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramEquipId = urlParams.get('equipment_id');
+  const paramFaultId = urlParams.get('fault_report_id');
+  const paramAction = urlParams.get('action');
+  const paramStatus = urlParams.get('status');
+
+  if (paramEquipId && equipSelect) {
+    equipSelect.value = paramEquipId;
+  }
+  if (paramFaultId && faultSelect) {
+    faultSelect.value = paramFaultId;
+  }
+  if (paramAction) {
+    const actionInput = document.getElementById('maint-action');
+    if (actionInput) actionInput.value = decodeURIComponent(paramAction);
+  } else if (paramStatus === 'Resolved') {
+    const actionInput = document.getElementById('maint-action');
+    if (actionInput) actionInput.value = 'Repaired components and restored to active service.';
+  } else if (paramStatus === 'Scrapped') {
+    const actionInput = document.getElementById('maint-action');
+    if (actionInput) actionInput.value = 'Stripped for reusable parts and decommissioned.';
+  }
+
+  if (paramEquipId || paramFaultId || paramStatus) {
+    if (modal) modal.style.display = 'flex';
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
 }

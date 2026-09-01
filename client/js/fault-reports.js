@@ -1,14 +1,3 @@
-/**
- * Fault Reports Management Page — fault-reports.js
- *
- * Handles:
- * - Loading and rendering the fault reports table with filters
- * - KPI summary cards (staff only)
- * - Slide-over detail panel with status pipeline
- * - Status update actions (In-Progress, Scrapped)
- * - "Resolve with Maintenance Log" workflow
- * - Pagination
- */
 
 let currentPage = 1;
 const pageLimit = 20;
@@ -22,7 +11,6 @@ async function initFaultReports() {
   const user = auth.getUser();
   if (!user) return;
 
-  // Hide staff-only KPI row for students
   if (user.role === 'Student') {
     const kpiSection = document.getElementById('fault-kpis');
     if (kpiSection) kpiSection.style.display = 'none';
@@ -32,8 +20,6 @@ async function initFaultReports() {
   setupDetailPanel();
   await loadFaultReports();
 }
-
-/* ========== DATA LOADING ========== */
 
 async function loadFaultReports() {
   const tableBody = document.getElementById('reports-table-body');
@@ -89,7 +75,7 @@ async function loadKpis() {
   if (!user || user.role === 'Student') return;
 
   try {
-    // Fetch counts for each status
+
     const [allRes, pendingRes, inProgressRes, resolvedRes] = await Promise.all([
       api.get('/fault-reports', { limit: 1 }),
       api.get('/fault-reports', { status: 'Pending', limit: 1 }),
@@ -105,8 +91,6 @@ async function loadKpis() {
     console.error('Failed to load KPIs:', err);
   }
 }
-
-/* ========== TABLE RENDERING ========== */
 
 function renderReportsTable(reports) {
   const tableBody = document.getElementById('reports-table-body');
@@ -193,8 +177,6 @@ function getStatusClass(status) {
   }
 }
 
-/* ========== PAGINATION ========== */
-
 function renderPagination() {
   const infoEl = document.getElementById('pagination-info');
   const prevBtn = document.getElementById('prev-page-btn');
@@ -217,8 +199,6 @@ function renderPagination() {
   }
 }
 
-/* ========== FILTERS ========== */
-
 function setupFilterListeners() {
   const statusFilter = document.getElementById('filter-status');
   const priorityFilter = document.getElementById('filter-priority');
@@ -240,8 +220,6 @@ function setupFilterListeners() {
   }
 }
 
-/* ========== DETAIL PANEL ========== */
-
 function setupDetailPanel() {
   const backdrop = document.getElementById('fault-detail-backdrop');
   const closeBtn = document.getElementById('close-detail-btn');
@@ -256,7 +234,6 @@ function setupDetailPanel() {
     });
   }
 
-  // Cancel resolve form
   const cancelResolveBtn = document.getElementById('cancel-resolve-btn');
   if (cancelResolveBtn) {
     cancelResolveBtn.addEventListener('click', () => {
@@ -264,7 +241,6 @@ function setupDetailPanel() {
     });
   }
 
-  // Submit resolve form
   const submitResolveBtn = document.getElementById('submit-resolve-btn');
   if (submitResolveBtn) {
     submitResolveBtn.addEventListener('click', submitResolutionLog);
@@ -275,7 +251,6 @@ async function openFaultDetail(reportId) {
   const backdrop = document.getElementById('fault-detail-backdrop');
   backdrop.classList.add('open');
 
-  // Show loading state in body
   const detailBody = document.getElementById('detail-body');
   const footer = document.getElementById('detail-footer');
 
@@ -299,7 +274,6 @@ function closeFaultDetail() {
   backdrop.classList.remove('open');
   currentDetailReport = null;
 
-  // Reset resolve form
   document.getElementById('resolve-form-section').style.display = 'none';
   document.getElementById('resolve-action').value = '';
   document.getElementById('resolve-parts').value = '';
@@ -310,21 +284,17 @@ function renderDetailPanel(report) {
   const user = auth.getUser();
   const isStaff = user && user.role !== 'Student';
 
-  // Status Pipeline
   renderStatusPipeline(report.status);
 
-  // Equipment info
   document.getElementById('detail-equip-name').textContent = report.equipment?.name || 'Unknown Equipment';
   document.getElementById('detail-equip-serial').textContent = report.equipment?.serial_number || '—';
   document.getElementById('detail-equip-location').textContent = report.equipment?.location || 'Unknown';
 
-  // Report details
   document.getElementById('detail-reporter').textContent = report.reporter?.name || 'Unknown';
   document.getElementById('detail-reporter-role').textContent = report.reporter?.role || '—';
   document.getElementById('detail-priority').innerHTML = `<span class="badge-pill ${getPriorityClass(report.priority)}">${report.priority}</span>`;
   document.getElementById('detail-date').textContent = new Date(report.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  // Resolved at
   const resolvedContainer = document.getElementById('detail-resolved-at-container');
   if (report.resolved_at) {
     resolvedContainer.style.display = 'flex';
@@ -333,10 +303,8 @@ function renderDetailPanel(report) {
     resolvedContainer.style.display = 'none';
   }
 
-  // Description
   document.getElementById('detail-description').textContent = report.description || 'No description provided.';
 
-  // Photo
   const photoSection = document.getElementById('detail-photo-section');
   if (report.image_path) {
     photoSection.style.display = 'block';
@@ -346,7 +314,6 @@ function renderDetailPanel(report) {
     photoSection.style.display = 'none';
   }
 
-  // Maintenance logs
   const logsSection = document.getElementById('detail-logs-section');
   const logsList = document.getElementById('detail-logs-list');
 
@@ -370,7 +337,6 @@ function renderDetailPanel(report) {
     logsSection.style.display = 'none';
   }
 
-  // Footer action buttons (staff only, context-dependent)
   const footer = document.getElementById('detail-footer');
   if (isStaff) {
     footer.style.display = 'flex';
@@ -462,8 +428,6 @@ function renderFooterActions(report) {
   footer.innerHTML = buttons;
 }
 
-/* ========== STATUS UPDATE ========== */
-
 async function updateFaultStatus(reportId, newStatus) {
   const confirmMsg = newStatus === 'Scrapped'
     ? 'Are you sure you want to scrap this equipment? This action will mark the equipment as decommissioned.'
@@ -475,16 +439,22 @@ async function updateFaultStatus(reportId, newStatus) {
     const res = await api.patch(`/fault-reports/${reportId}/status`, { status: newStatus });
 
     if (res.success) {
-      api.showToast(`Report status updated to ${newStatus}`, 'success');
+      const equipId = res.data?.equipment_id || (currentDetailReport ? currentDetailReport.equipment_id : '');
+      api.showToast(`Report status updated to ${newStatus}! Redirecting to log maintenance...`, 'success');
       closeFaultDetail();
-      await loadFaultReports();
+
+      if (newStatus === 'Resolved' || newStatus === 'Scrapped') {
+        setTimeout(() => {
+          window.location.href = `maintenance.html?equipment_id=${equipId}&fault_report_id=${reportId}&status=${newStatus}`;
+        }, 600);
+      } else {
+        await loadFaultReports();
+      }
     }
   } catch (err) {
     api.showToast(err.message || 'Failed to update status', 'error');
   }
 }
-
-/* ========== RESOLVE WITH MAINTENANCE LOG ========== */
 
 function showResolveForm() {
   const resolveSection = document.getElementById('resolve-form-section');

@@ -11,12 +11,11 @@
 </head>
 <body>
   <div id="app-layout">
-    <!-- Sidebar -->
+
     <div id="sidebar-container"></div>
 
-    <!-- Main Wrapper -->
     <div class="main-wrapper">
-      <!-- Topbar -->
+
       <header class="topbar">
         <div class="topbar-left">
           <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
@@ -27,10 +26,9 @@
         </div>
       </header>
 
-      <!-- Content Area -->
       <main class="content-area">
         <div style="max-width: 900px; margin: 0 auto;">
-          <!-- Profile Overview Header Card -->
+
           <div class="card-custom" style="padding: 24px; margin-bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
             <div style="display: flex; align-items: center; gap: 18px;">
               <div id="profile-avatar" style="width: 64px; height: 64px; border-radius: 50%; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; border: 2px solid var(--color-primary);">
@@ -52,7 +50,7 @@
           </div>
 
           <div style="display: grid; grid-template-columns: 1.1fr 1.3fr; gap: 24px;">
-            <!-- Profile Details / Name Settings -->
+
             <div class="card-custom">
               <div class="card-header-flex">
                 <h2 class="card-title">Account Information</h2>
@@ -83,7 +81,6 @@
                   <input type="text" id="profile-role-input" class="form-control-custom" readonly>
                 </div>
 
-                <!-- Admin-only save name button -->
                 <div id="admin-name-save-container" style="display: none;">
                   <button type="submit" id="save-name-btn" class="btn-primary-custom" style="width: 100%;">
                     <i class="bi bi-check2"></i> Update Display Name
@@ -92,7 +89,6 @@
               </form>
             </div>
 
-            <!-- Change Password Card -->
             <div class="card-custom">
               <div class="card-header-flex">
                 <h2 class="card-title">Security & Password</h2>
@@ -153,6 +149,6 @@
       renderSidebar('profile');
       initProfile();
     }
-  </script>
+</script>
 </body>
 </html>

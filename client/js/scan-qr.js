@@ -8,7 +8,6 @@ async function initScanner() {
   const snapBtn = document.getElementById('snap-qr-btn');
   const fileInput = document.getElementById('qr-file-input');
 
-  // Manual search handlers
   if (manualBtn && manualInput) {
     manualBtn.addEventListener('click', () => {
       const code = manualInput.value.trim();
@@ -23,7 +22,6 @@ async function initScanner() {
     });
   }
 
-  // Proceed button handler
   if (proceedBtn) {
     proceedBtn.addEventListener('click', () => {
       if (resolvedEquipment) {
@@ -33,7 +31,6 @@ async function initScanner() {
     });
   }
 
-  // Snap Photo / File Upload Handler
   if (snapBtn && fileInput) {
     snapBtn.addEventListener('click', () => {
       fileInput.click();
@@ -43,7 +40,7 @@ async function initScanner() {
       if (e.target.files && e.target.files.length > 0) {
         const imageFile = e.target.files[0];
         api.showToast('Analyzing photo...', 'info');
-        
+
         try {
           const decodedText = await decodeQrWithMultiPass(imageFile);
           if (decodedText) {
@@ -60,7 +57,6 @@ async function initScanner() {
     });
   }
 
-  // Initialize Html5Qrcode instance for live camera streaming
   if (typeof Html5Qrcode !== 'undefined') {
     html5QrCode = new Html5Qrcode('qr-reader');
 
@@ -75,7 +71,7 @@ async function initScanner() {
           resolveQrCode(decodedText);
         },
         (errorMessage) => {
-          // ignore scan frame misses
+
         }
       );
     } catch (err) {
@@ -86,33 +82,23 @@ async function initScanner() {
   }
 }
 
-/**
- * Multi-Pass Adaptive Image Decoder
- * Handles raw smartphone high-resolution (12MP-50MP) photos with multi-scale downsampling
- * and contrast enhancement passes using jsQR.
- */
 async function decodeQrWithMultiPass(file) {
   const img = await loadImageFromFile(file);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-  // Pass 1: Scale down to 1200px max dimension (Optimal for smartphone photos)
   let code = scanCanvasAtScale(img, canvas, ctx, 1200, false);
   if (code) return code;
 
-  // Pass 2: Scale down to 800px max dimension
   code = scanCanvasAtScale(img, canvas, ctx, 800, false);
   if (code) return code;
 
-  // Pass 3: Scale down to 600px with High-Contrast Binarization Filter
   code = scanCanvasAtScale(img, canvas, ctx, 600, true);
   if (code) return code;
 
-  // Pass 4: Original dimensions (if smaller than 1200px)
   code = scanCanvasAtScale(img, canvas, ctx, Math.max(img.width, img.height), false);
   if (code) return code;
 
-  // Pass 5: html5-qrcode fallback
   if (html5QrCode && typeof html5QrCode.scanFile === 'function') {
     try {
       return await html5QrCode.scanFile(file, false);
@@ -157,7 +143,7 @@ function scanCanvasAtScale(img, canvas, ctx, maxDimension, applyContrast = false
   const imageData = ctx.getImageData(0, 0, width, height);
 
   if (applyContrast) {
-    // Contrast boost & grayscale binarization to eliminate shadows
+
     const data = imageData.data;
     for (let i = 0; i < data.length; i += 4) {
       const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
@@ -202,18 +188,43 @@ async function resolveQrCode(qrCodeString) {
       document.getElementById('res-category').textContent = resolvedEquipment.category || 'Laboratory Device';
       document.getElementById('res-location').textContent = resolvedEquipment.location || 'Main Laboratory';
       document.getElementById('res-status').textContent = resolvedEquipment.status;
-      
+
       const statusPill = document.getElementById('res-status-pill');
       if (statusPill) {
         statusPill.className = `badge-pill ${resolvedEquipment.status === 'Active' ? 'status-active' : 'status-under-repair'}`;
       }
 
+      const underRepairWarning = document.getElementById('under-repair-warning');
+      const scrappedWarning = document.getElementById('scrapped-warning');
+      const isUnderRepair = resolvedEquipment.status === 'Under Repair';
+      const isScrapped = resolvedEquipment.status === 'Scrapped';
+
+      if (underRepairWarning) {
+        underRepairWarning.style.display = isUnderRepair ? 'block' : 'none';
+      }
+      if (scrappedWarning) {
+        scrappedWarning.style.display = isScrapped ? 'block' : 'none';
+      }
+
       emptyState.style.display = 'none';
       resultCard.style.display = 'block';
-      proceedBtn.disabled = false;
-      proceedBtn.style.opacity = '1';
 
-      api.showToast(`Found: ${resolvedEquipment.name}`, 'success');
+      if (isUnderRepair) {
+        proceedBtn.disabled = true;
+        proceedBtn.style.opacity = '0.5';
+        proceedBtn.innerHTML = '<i class="bi bi-clock-history"></i> <span>Already Reported / Under Repair</span>';
+        api.showToast(`Found: ${resolvedEquipment.name} (Currently Under Repair)`, 'warning');
+      } else if (isScrapped) {
+        proceedBtn.disabled = true;
+        proceedBtn.style.opacity = '0.5';
+        proceedBtn.innerHTML = '<i class="bi bi-x-circle"></i> <span>Decommissioned / Scrapped</span>';
+        api.showToast(`Found: ${resolvedEquipment.name} (Scrapped)`, 'error');
+      } else {
+        proceedBtn.disabled = false;
+        proceedBtn.style.opacity = '1';
+        proceedBtn.innerHTML = '<i class="bi bi-flag-fill"></i> <span>Select Fault Type &rarr;</span>';
+        api.showToast(`Found: ${resolvedEquipment.name}`, 'success');
+      }
     }
   } catch (err) {
     resolvedEquipment = null;

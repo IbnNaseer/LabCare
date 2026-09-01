@@ -3,7 +3,6 @@ const multer = require('multer');
 module.exports = (err, req, res, next) => {
   console.error('[Error]', err);
 
-  // Handle Multer errors
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
@@ -17,7 +16,6 @@ module.exports = (err, req, res, next) => {
     });
   }
 
-  // Handle custom upload filter error or validation errors
   if (err.message && err.message.includes('Invalid file type')) {
     return res.status(400).json({
       success: false,
@@ -25,7 +23,6 @@ module.exports = (err, req, res, next) => {
     });
   }
 
-  // Handle Sequelize validation errors
   if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
     const messages = err.errors.map((e) => e.message);
     return res.status(400).json({
@@ -35,7 +32,6 @@ module.exports = (err, req, res, next) => {
     });
   }
 
-  // Handle Sequelize foreign key constraint errors
   if (err.name === 'SequelizeForeignKeyConstraintError') {
     return res.status(400).json({
       success: false,
@@ -43,7 +39,6 @@ module.exports = (err, req, res, next) => {
     });
   }
 
-  // Handle JSON Web Token errors
   if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
     return res.status(401).json({
       success: false,

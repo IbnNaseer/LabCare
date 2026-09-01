@@ -1,4 +1,6 @@
+const { Op } = require('sequelize');
 const { MaintenanceLog, Equipment, FaultReport, User } = require('../models');
+const { recalculateSingleEquipment } = require('../services/ehiService');
 
 exports.create = async (req, res, next) => {
   try {
@@ -37,7 +39,6 @@ exports.create = async (req, res, next) => {
       cost: parseFloat(cost) || 0,
     });
 
-    // If linked to a fault report and requested to resolve
     if (fault_report_id && resolve_fault) {
       const fault = await FaultReport.findByPk(fault_report_id);
       if (fault && fault.status !== 'Resolved') {
@@ -46,6 +47,20 @@ exports.create = async (req, res, next) => {
         await fault.save();
       }
     }
+
+    const activeFaultsCount = await FaultReport.count({
+      where: {
+        equipment_id: parseInt(equipment_id, 10),
+        status: { [Op.in]: ['Pending', 'In-Progress'] },
+      },
+    });
+
+    if (activeFaultsCount === 0 && equipment.status === 'Under Repair') {
+      equipment.status = 'Active';
+      await equipment.save();
+    }
+
+    await recalculateSingleEquipment(parseInt(equipment_id, 10));
 
     const populatedLog = await MaintenanceLog.findByPk(log.log_id, {
       include: [

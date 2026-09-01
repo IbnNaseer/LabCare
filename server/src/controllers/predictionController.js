@@ -24,7 +24,7 @@ exports.getByEquipment = async (req, res, next) => {
 
 exports.getHighRisk = async (req, res, next) => {
   try {
-    // Get all equipment with their latest prediction
+
     const allEquipment = await Equipment.findAll({
       where: { status: { [Op.ne]: 'Scrapped' } },
       include: [
@@ -61,7 +61,6 @@ exports.recalculate = async (req, res, next) => {
       where: { status: { [Op.ne]: 'Scrapped' } },
     });
 
-    // Find a technician or admin to receive email alerts
     const staffUser = await User.findOne({
       where: { role: { [Op.in]: ['Technologist', 'Engineer', 'Admin'] } },
       order: [['user_id', 'ASC']],
@@ -158,26 +157,79 @@ exports.getDashboardSummary = async (req, res, next) => {
     let totalScore = 0;
     let scoredCount = 0;
 
-    allEquipment.forEach((item) => {
-      const pred = item.predictions && item.predictions[0];
-      if (pred) {
-        const score = parseFloat(pred.ehi_score);
-        totalScore += score;
-        scoredCount++;
-        if (pred.risk_level === 'High') highRiskCount++;
-        else if (pred.risk_level === 'Medium') mediumRiskCount++;
-        else lowRiskCount++;
+    for (const item of allEquipment) {
+      let pred = item.predictions && item.predictions[0];
+      if (!pred) {
+        const failureCount = await FaultReport.count({
+          where: { equipment_id: item.equipment_id, status: { [Op.in]: ['Resolved', 'Scrapped'] } },
+        });
+        const calc = calculateEHI({
+          operationalHours: parseFloat(item.operational_hours || 0),
+          expectedLifespanHours: item.expected_lifespan_hours || 10000,
+          failureCount,
+          daysSinceLastService: 0,
+        });
+        pred = { ehi_score: calc.ehi, risk_level: calc.riskLevel };
       }
-    });
+
+      const score = parseFloat(pred.ehi_score);
+      totalScore += score;
+      scoredCount++;
+      if (pred.risk_level === 'High') highRiskCount++;
+      else if (pred.risk_level === 'Medium') mediumRiskCount++;
+      else lowRiskCount++;
+    }
 
     const averageHealth = scoredCount > 0 ? Math.round((totalScore / scoredCount) * 10) / 10 : 100;
+
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const trendLabels = [];
+    const pendingTrend = [];
+    const inProgressTrend = [];
+    const resolvedTrend = [];
+
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+      const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
+      trendLabels.push(daysOfWeek[d.getDay()]);
+
+      const pendingCount = await FaultReport.count({
+        where: {
+          created_at: { [Op.between]: [startOfDay, endOfDay] },
+          status: 'Pending',
+        },
+      });
+
+      const inProgCount = await FaultReport.count({
+        where: {
+          created_at: { [Op.between]: [startOfDay, endOfDay] },
+          status: 'In-Progress',
+        },
+      });
+
+      const resolvedCount = await FaultReport.count({
+        where: {
+          [Op.or]: [
+            { resolved_at: { [Op.between]: [startOfDay, endOfDay] } },
+            { created_at: { [Op.between]: [startOfDay, endOfDay] }, status: 'Resolved' },
+          ],
+        },
+      });
+
+      pendingTrend.push(pendingCount);
+      inProgressTrend.push(inProgCount);
+      resolvedTrend.push(resolvedCount);
+    }
 
     const recentFaults = await FaultReport.findAll({
       limit: 5,
       order: [['created_at', 'DESC']],
       include: [
-        { model: Equipment, as: 'equipment', attributes: ['equipment_id', 'name', 'serial_number'] },
-        { model: User, as: 'reporter', attributes: ['user_id', 'name'] },
+        { model: Equipment, as: 'equipment', attributes: ['equipment_id', 'name', 'serial_number', 'location'] },
+        { model: User, as: 'reporter', attributes: ['user_id', 'name', 'role'] },
       ],
     });
 
@@ -196,6 +248,12 @@ exports.getDashboardSummary = async (req, res, next) => {
           mediumRisk: mediumRiskCount,
           lowRisk: lowRiskCount,
           total: scoredCount,
+        },
+        faultTrend: {
+          labels: trendLabels,
+          pending: pendingTrend,
+          inProgress: inProgressTrend,
+          resolved: resolvedTrend,
         },
         recentFaults,
         note: 'Operational hours and EHI scores are estimated and rule-based.',

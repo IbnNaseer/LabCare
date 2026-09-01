@@ -1,7 +1,3 @@
-/**
- * Dashboard Logic — dashboard.js
- * Role-aware Dashboard supporting separate Student and Staff workflows.
- */
 
 let faultChartInstance = null;
 let healthChartInstance = null;
@@ -26,8 +22,6 @@ async function loadDashboard() {
   }
 }
 
-/* ==================== STUDENT DASHBOARD WORKFLOW ==================== */
-
 async function loadStudentDashboard(user) {
   const greetingEl = document.getElementById('student-greeting');
   if (greetingEl) {
@@ -38,7 +32,6 @@ async function loadStudentDashboard(user) {
     const res = await api.get('/fault-reports');
     const reports = (res.success && res.data && res.data.reports) ? res.data.reports : [];
 
-    // Calculate Student KPIs
     const total = reports.length;
     const pending = reports.filter(r => r.status === 'Pending').length;
     const inProgress = reports.filter(r => r.status === 'In-Progress').length;
@@ -49,7 +42,6 @@ async function loadStudentDashboard(user) {
     document.getElementById('student-kpi-progress').textContent = inProgress;
     document.getElementById('student-kpi-resolved').textContent = resolved;
 
-    // Render Active Tracker & Recent List
     renderStudentActiveTracker(reports);
     renderStudentRecentFaults(reports.slice(0, 5));
   } catch (err) {
@@ -62,8 +54,22 @@ function renderStudentActiveTracker(reports) {
   const container = document.getElementById('student-tracker-container');
   if (!container) return;
 
-  if (!reports || reports.length === 0) {
-    container.innerHTML = `
+  const activeReport = reports ? reports.find(r => r.status === 'Pending' || r.status === 'In-Progress') : null;
+
+  if (!activeReport) {
+    const hasResolved = reports && reports.length > 0;
+    container.innerHTML = hasResolved ? `
+      <div style="text-align: center; padding: 28px 16px; background: #F0FDF4; border-radius: 8px; border: 1px solid #DCFCE7;">
+        <i class="bi bi-patch-check-fill" style="font-size: 38px; color: #16A34A; display: block; margin-bottom: 8px;"></i>
+        <h3 style="font-size: 15px; font-weight: 700; color: #166534; margin-bottom: 4px;">All Reports Cleared &amp; Resolved!</h3>
+        <p style="font-size: 12px; color: #15803D; max-width: 420px; margin: 0 auto 16px auto;">
+          You currently have no pending or active equipment faults under review. All previous reports have been successfully serviced and resolved.
+        </p>
+        <a href="scan-qr.html" class="btn-primary-custom" style="font-size: 12px; padding: 7px 14px; display: inline-flex;">
+          <i class="bi bi-qr-code-scan"></i> Scan Equipment
+        </a>
+      </div>
+    ` : `
       <div style="text-align: center; padding: 32px 16px; background: var(--color-surface); border-radius: 8px; border: 1px dashed var(--color-border);">
         <i class="bi bi-shield-check" style="font-size: 38px; color: var(--color-primary); display: block; margin-bottom: 10px;"></i>
         <h3 style="font-size: 15px; font-weight: 700; color: var(--color-text-dark); margin-bottom: 4px;">No Active Faults</h3>
@@ -77,9 +83,6 @@ function renderStudentActiveTracker(reports) {
     `;
     return;
   }
-
-  // Look for active (Pending or In-Progress) reports first
-  const activeReport = reports.find(r => r.status === 'Pending' || r.status === 'In-Progress') || reports[0];
   const status = activeReport.status;
   const priorityClass = getPriorityBadgeClass(activeReport.priority);
   const equipName = activeReport.equipment?.name || 'Lab Equipment';
@@ -185,8 +188,6 @@ function renderStudentRecentFaults(reports) {
   container.innerHTML = html;
 }
 
-/* ==================== STAFF DASHBOARD WORKFLOW ==================== */
-
 async function loadStaffDashboard(user) {
   const greetingEl = document.getElementById('staff-greeting');
   if (greetingEl) {
@@ -199,13 +200,8 @@ async function loadStaffDashboard(user) {
       const summaryData = res.data;
       updateStaffKpis(summaryData.kpis);
       renderHealthDonut(summaryData.healthDistribution, summaryData.kpis.averageHealth);
-    }
-
-    // Load recent faults across all users
-    const faultsRes = await api.get('/fault-reports', { limit: 5 });
-    if (faultsRes.success && faultsRes.data) {
-      renderStaffRecentFaults(faultsRes.data.reports);
-      renderFaultsChart(faultsRes.data.reports);
+      renderStaffRecentFaults(summaryData.recentFaults || []);
+      renderFaultsChart(summaryData.faultTrend);
     }
   } catch (err) {
     console.error('Failed to load staff dashboard data:', err);
@@ -261,7 +257,7 @@ function renderStaffRecentFaults(reports) {
   container.innerHTML = html;
 }
 
-function renderHealthDonut(distribution, averageHealth) {
+function renderHealthDonut(dist, averageHealth) {
   const ctx = document.getElementById('healthDonutChart');
   if (!ctx) return;
 
@@ -269,13 +265,20 @@ function renderHealthDonut(distribution, averageHealth) {
     healthChartInstance.destroy();
   }
 
-  const dataValues = distribution ? [
-    distribution.lowRisk || 0,
-    distribution.mediumRisk || 0,
-    distribution.highRisk || 0
-  ] : [1, 0, 0];
+  const low = (dist && dist.lowRisk) || 0;
+  const med = (dist && dist.mediumRisk) || 0;
+  const high = (dist && dist.highRisk) || 0;
+  const total = (dist && dist.total) || (low + med + high);
 
-  const total = dataValues.reduce((a, b) => a + b, 0);
+  const dataValues = [low, med, high];
+
+  const lowEl = document.getElementById('legend-low-count');
+  const medEl = document.getElementById('legend-med-count');
+  const highEl = document.getElementById('legend-high-count');
+
+  if (lowEl) lowEl.textContent = low;
+  if (medEl) medEl.textContent = med;
+  if (highEl) highEl.textContent = high;
 
   healthChartInstance = new Chart(ctx, {
     type: 'doughnut',
@@ -305,7 +308,7 @@ function renderHealthDonut(distribution, averageHealth) {
   }
 }
 
-function renderFaultsChart(reports) {
+function renderFaultsChart(trend) {
   const ctx = document.getElementById('faultsLineChart');
   if (!ctx) return;
 
@@ -313,16 +316,16 @@ function renderFaultsChart(reports) {
     faultChartInstance.destroy();
   }
 
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  
-  const pendingData = [1, 2, 1, 3, 2, 1, 0];
-  const inProgressData = [0, 1, 2, 1, 1, 0, 0];
-  const resolvedData = [2, 3, 4, 2, 5, 1, 0];
+  const defaultDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const labels = (trend && trend.labels && trend.labels.length > 0) ? trend.labels : defaultDays;
+  const pendingData = (trend && trend.pending) ? trend.pending : [0, 0, 0, 0, 0, 0, 0];
+  const inProgressData = (trend && trend.inProgress) ? trend.inProgress : [0, 0, 0, 0, 0, 0, 0];
+  const resolvedData = (trend && trend.resolved) ? trend.resolved : [0, 0, 0, 0, 0, 0, 0];
 
   faultChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: days,
+      labels: labels,
       datasets: [
         {
           label: 'New / Pending',

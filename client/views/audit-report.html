@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Executive Laboratory Audit Report — LabCare</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 1.2cm 1.5cm;
+    }
+    @media print {
+      html, body {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        font-size: 11px;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .no-print, nav, header, aside, .sidebar-wrapper, .btn-primary-custom, .btn-outline-custom {
+        display: none !important;
+      }
+      .report-container {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+      .fud-letterhead {
+        border-bottom: 2px solid #000000 !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 16px !important;
+      }
+      .fud-letterhead h1 {
+        color: #000000 !important;
+        font-size: 18px !important;
+      }
+      .fud-letterhead .report-doc-title {
+        background: none !important;
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+        padding: 2px 12px !important;
+        font-size: 11px !important;
+      }
+      .report-meta-grid {
+        background: none !important;
+        border: 1px solid #333333 !important;
+        padding: 8px 12px !important;
+        margin-bottom: 16px !important;
+        font-size: 10px !important;
+      }
+      .report-kpi-grid {
+        margin-bottom: 16px !important;
+        gap: 10px !important;
+      }
+      .report-kpi-box {
+        background: #FFFFFF !important;
+        border: 1px solid #333333 !important;
+        padding: 8px !important;
+      }
+      .report-kpi-box .num {
+        font-size: 17px !important;
+        color: #000000 !important;
+      }
+      .report-kpi-box .lbl {
+        font-size: 9.5px !important;
+        color: #333333 !important;
+      }
+      .report-section {
+        margin-bottom: 18px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .report-section-title {
+        border-left: 3px solid #000000 !important;
+        color: #000000 !important;
+        font-size: 11.5px !important;
+        margin-bottom: 8px !important;
+        padding-left: 6px !important;
+      }
+      table {
+        font-size: 9.5px !important;
+        border-collapse: collapse !important;
+        width: 100% !important;
+      }
+      table, th, td {
+        border: 1px solid #444444 !important;
+      }
+      th {
+        background-color: #F1F5F9 !important;
+        color: #000000 !important;
+        font-weight: 700 !important;
+        padding: 5px 6px !important;
+      }
+      td {
+        padding: 4px 6px !important;
+        color: #000000 !important;
+      }
+      .badge-pill {
+        border: 1px solid #666666 !important;
+        background: none !important;
+        color: #000000 !important;
+        padding: 1px 5px !important;
+        font-size: 8.5px !important;
+      }
+      .signature-grid {
+        margin-top: 20px !important;
+        padding-top: 10px !important;
+        border-top: 1px solid #000000 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .signature-line {
+        border-bottom: 1px dashed #000000 !important;
+        margin: 26px 15px 6px 15px !important;
+      }
+    }
+
+    .report-container {
+      max-width: 1000px;
+      margin: 30px auto;
+      background: var(--color-white);
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--color-border);
+      padding: 40px;
+    }
+
+    .fud-letterhead {
+      text-align: center;
+      border-bottom: 2px solid var(--color-primary);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+
+    .fud-letterhead h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #1E3A8A;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .fud-letterhead h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-neutral);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .fud-letterhead .report-doc-title {
+      display: inline-block;
+      margin-top: 10px;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 16px;
+      border-radius: 20px;
+      border: 1px solid #BFDBFE;
+    }
+
+    .report-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-md);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      font-size: 12px;
+    }
+
+    .report-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .report-kpi-box {
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-md);
+      padding: 14px;
+      text-align: center;
+      background: #FAFAFA;
+    }
+
+    .report-kpi-box .num {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--color-text-dark);
+      margin-bottom: 2px;
+    }
+
+    .report-kpi-box .lbl {
+      font-size: 11px;
+      color: var(--color-neutral);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .report-section {
+      margin-bottom: 28px;
+    }
+
+    .report-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--color-text-dark);
+      border-left: 4px solid var(--color-primary);
+      padding-left: 10px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .signature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .signature-box {
+      text-align: center;
+    }
+
+    .signature-line {
+      border-bottom: 1px dashed #666666;
+      margin: 40px 10px 8px 10px;
+    }
+
+    .signature-role {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-text-dark);
+    }
+  </style>
+</head>
+<body style="display: block; background-color: #F1F5F9; min-height: 100vh;">
+
+  <!-- Controls Bar (No Print) -->
+  <div class="no-print" style="background: var(--color-white); border-bottom: 1px solid var(--color-border); padding: 12px 24px; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <a href="dashboard.html" class="btn-outline-custom" style="padding: 6px 12px; font-size: 13px;">
+        <i class="bi bi-arrow-left"></i> Dashboard
+      </a>
+      <span style="font-weight: 700; font-size: 15px; color: var(--color-text-dark);">Departmental Audit & Analytics Report</span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button type="button" onclick="window.print()" class="btn-primary-custom" style="padding: 7px 16px; font-size: 13px;">
+        <i class="bi bi-printer-fill"></i> Print / Save as PDF
+      </button>
+      <button type="button" onclick="ExportService.exportEquipmentCSV()" class="btn-outline-custom" style="padding: 7px 14px; font-size: 13px;">
+        <i class="bi bi-filetype-csv"></i> Export Inventory CSV
+      </button>
+      <button type="button" onclick="ExportService.exportFaultReportsCSV()" class="btn-outline-custom" style="padding: 7px 14px; font-size: 13px;">
+        <i class="bi bi-filetype-csv"></i> Export Faults CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Report Document -->
+  <div class="report-container">
+    <!-- Letterhead -->
+    <div class="fud-letterhead">
+      <h1>Federal University Dutse</h1>
+      <!-- <h2>Faculty of Computing &bull; Department of Computer Science</h2> -->
+      <div style="font-size: 12px; color: var(--color-neutral); margin-top: 2px;">
+        Laboratory Equipment Management & Predictive Maintenance System (LabCare)
+      </div>
+      <div class="report-doc-title">
+        <i class="bi bi-file-earmark-bar-graph-fill"></i> OFFICIAL LABORATORY STATUS & AUDIT REPORT
+      </div>
+    </div>
+
+    <!-- Metadata Grid -->
+    <div class="report-meta-grid">
+      <div><strong>Generated Date:</strong> <span id="rpt-date">-</span></div>
+      <div><strong>Generated By:</strong> <span id="rpt-author">-</span></div>
+      <div><strong>Staff Role:</strong> <span id="rpt-role">-</span></div>
+      <div><strong>System Status:</strong> <span style="color: var(--color-success); font-weight: 600;">Operational ●</span></div>
+      <div><strong>Audit Scope:</strong> Comprehensive Laboratory Fleet</div>
+      <div><strong>Report Ref:</strong> <span id="rpt-ref">FUD/CSC/LAB-AUDIT</span></div>
+    </div>
+
+    <!-- KPI Summary Grid -->
+    <div class="report-kpi-grid">
+      <div class="report-kpi-box">
+        <div class="num" id="rpt-kpi-total">-</div>
+        <div class="lbl">Total Equipment</div>
+      </div>
+      <div class="report-kpi-box">
+        <div class="num" id="rpt-kpi-health" style="color: var(--color-success);">-</div>
+        <div class="lbl">Fleet Health Average</div>
+      </div>
+      <div class="report-kpi-box">
+        <div class="num" id="rpt-kpi-faults" style="color: var(--color-danger);">-</div>
+        <div class="lbl">Active Faults</div>
+      </div>
+      <div class="report-kpi-box">
+        <div class="num" id="rpt-kpi-maintenance" style="color: var(--color-warning);">-</div>
+        <div class="lbl">Under Maintenance</div>
+      </div>
+    </div>
+
+    <!-- Section 1: Equipment Inventory & Predictive Health Status -->
+    <div class="report-section">
+      <div class="report-section-title">1. Equipment Inventory & Predictive Health Index (EHI)</div>
+      <div style="overflow-x: auto;">
+        <table class="table-custom" style="width: 100%; border: 1px solid var(--color-border);">
+          <thead>
+            <tr style="background-color: #F8FAFC;">
+              <th>ID</th>
+              <th>Asset Name</th>
+              <th>Serial Number</th>
+              <th>Category</th>
+              <th>Location</th>
+              <th>Operational Hrs</th>
+              <th>EHI Health</th>
+              <th>Risk Level</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="rpt-equipment-table">
+            <tr><td colspan="9" style="text-align: center; padding: 14px;">Loading equipment audit records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 2: Fault Reports & Incident Log -->
+    <div class="report-section">
+      <div class="report-section-title">2. Recent Fault Reports & Resolution Log</div>
+      <div style="overflow-x: auto;">
+        <table class="table-custom" style="width: 100%; border: 1px solid var(--color-border);">
+          <thead>
+            <tr style="background-color: #F8FAFC;">
+              <th>Ref #</th>
+              <th>Equipment</th>
+              <th>Reported By</th>
+              <th>Priority</th>
+              <th>Description</th>
+              <th>Logged Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="rpt-faults-table">
+            <tr><td colspan="7" style="text-align: center; padding: 14px;">Loading fault incident log...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 3: Maintenance Operations Log -->
+    <div class="report-section">
+      <div class="report-section-title">3. Recent Maintenance & Servicing History</div>
+      <div style="overflow-x: auto;">
+        <table class="table-custom" style="width: 100%; border: 1px solid var(--color-border);">
+          <thead>
+            <tr style="background-color: #F8FAFC;">
+              <th>Log #</th>
+              <th>Equipment</th>
+              <th>Type</th>
+              <th>Serviced By</th>
+              <th>Service Date</th>
+              <th>Cost (NGN)</th>
+              <th>Action / Notes</th>
+            </tr>
+          </thead>
+          <tbody id="rpt-maintenance-table">
+            <tr><td colspan="7" style="text-align: center; padding: 14px;">Loading maintenance records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Official Sign-off Box -->
+    <div class="signature-grid">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-role">Laboratory Technologist</div>
+        <div style="font-size: 10px; color: var(--color-neutral);">Sign & Date</div>
+      </div>
+
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-role">Maintenance Engineer</div>
+        <div style="font-size: 10px; color: var(--color-neutral);">Sign & Date</div>
+      </div>
+
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-role">Head of Department (HOD)</div>
+        <div style="font-size: 10px; color: var(--color-neutral);">Sign & Date</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/export.js"></script>
+  <script src="../js/audit-report.js"></script>
+  <script>
+    if (auth.requireAuth(['Technologist', 'Engineer', 'Admin'])) {
+      loadAuditReport();
+    }
+  </script>
+</body>
+</html>

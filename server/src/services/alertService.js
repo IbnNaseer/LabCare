@@ -15,13 +15,6 @@ if (env.smtp.host && env.smtp.user) {
   });
 }
 
-/**
- * Sends a high risk alert email to technician or staff.
- *
- * @param {string} technicianEmail
- * @param {Object} equipment
- * @param {number} ehi
- */
 async function sendHighRiskAlert(technicianEmail, equipment, ehi) {
   if (!transporter) {
     console.log(`[AlertService Mock] High risk alert for ${equipment.name} (${equipment.serial_number}) - EHI: ${ehi}% -> Sent to: ${technicianEmail}`);

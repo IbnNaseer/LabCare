@@ -12,12 +12,11 @@
 </head>
 <body>
   <div id="app-layout">
-    <!-- Sidebar -->
+
     <div id="sidebar-container"></div>
 
-    <!-- Main Wrapper -->
     <div class="main-wrapper">
-      <!-- Topbar -->
+
       <header class="topbar">
         <div class="topbar-left">
           <button class="sidebar-toggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
@@ -28,10 +27,9 @@
         </div>
       </header>
 
-      <!-- Content Area -->
       <main class="content-area">
         <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;">
-          <!-- Left: Viewfinder Panel -->
+
           <div class="card-custom">
             <div class="card-header-flex">
               <h2 class="card-title">Live QR Scanner</h2>
@@ -40,9 +38,8 @@
 
             <div id="qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; background: #000; min-height: 240px; position: relative;"></div>
 
-            <!-- Snap Photo & Upload QR Input (Works on all mobile phones & HTTP) -->
             <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display: none;">
-            
+
             <button type="button" id="snap-qr-btn" class="btn-primary-custom" style="width: 100%; margin-top: 14px; padding: 11px; display: flex; align-items: center; justify-content: center; gap: 8px;">
               <i class="bi bi-camera-fill" style="font-size: 16px;"></i>
               <span>Take Photo / Upload QR Image</span>
@@ -52,7 +49,6 @@
               <i class="bi bi-info-circle-fill"></i> <strong>Live video requires HTTPS on mobile.</strong> Tap <strong>Take Photo</strong> above to scan instantly with your phone's camera!
             </div>
 
-            <!-- Manual Fallback Input -->
             <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border);">
               <label class="form-label-custom" for="manual-qr-input">Or Enter Serial No. / Asset Tag Manually</label>
               <div style="display: flex; gap: 10px;">
@@ -67,7 +63,6 @@
             </div>
           </div>
 
-          <!-- Right: Resolved Equipment Card -->
           <div class="card-custom" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
               <div class="card-header-flex">
@@ -83,7 +78,6 @@
                 <p style="font-size: 13px;">Align the QR code sticker on the laboratory device within the frame.</p>
               </div>
 
-              <!-- Result Card (shown when resolved) -->
               <div id="scanned-result-card" style="display: none;">
                 <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 20px; padding: 14px; background-color: var(--color-surface); border-radius: var(--border-radius-md);">
                   <div style="width: 48px; height: 48px; border-radius: 8px; background-color: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 24px;">
@@ -104,6 +98,14 @@
                     <div style="font-size: 11px; color: var(--color-neutral); font-weight: 600; text-transform: uppercase;">Location</div>
                     <div style="font-size: 13px; font-weight: 600;" id="res-location">-</div>
                   </div>
+                </div>
+
+                <div id="under-repair-warning" style="display: none; background-color: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; padding: 12px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 16px; line-height: 1.4;">
+                  <i class="bi bi-exclamation-triangle-fill" style="color: #D97706;"></i> <strong>Active Ticket / Under Repair:</strong> This device is already being serviced by technicians. Duplicate submissions are blocked until resolved.
+                </div>
+
+                <div id="scrapped-warning" style="display: none; background-color: #FEE2E2; border: 1px solid #FECACA; color: #991B1B; padding: 12px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 16px; line-height: 1.4;">
+                  <i class="bi bi-x-octagon-fill" style="color: #DC2626;"></i> <strong>Decommissioned Asset:</strong> This equipment has been scrapped/disposed and taken out of service permanently. Fault reporting is disabled.
                 </div>
               </div>
             </div>
@@ -127,6 +129,6 @@
       renderSidebar('scan-qr');
       initScanner();
     }
-  </script>
+</script>
 </body>
 </html>

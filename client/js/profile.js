@@ -1,6 +1,3 @@
-/**
- * User Profile & Password Management — profile.js
- */
 
 async function initProfile() {
   setupPasswordToggles();
@@ -43,13 +40,11 @@ function renderUserData(user) {
     document.getElementById('profile-joined-display').textContent = dateStr;
   }
 
-  // Populate form inputs
   const nameInput = document.getElementById('profile-name-input');
   nameInput.value = user.name || '';
   document.getElementById('profile-email-input').value = user.email || '';
   document.getElementById('profile-role-input').value = user.role || '';
 
-  // Role permissions for editing name:
   const isAdmin = user.role === 'Admin';
   const nameLockNotice = document.getElementById('name-lock-notice');
   const adminSaveContainer = document.getElementById('admin-name-save-container');
@@ -99,7 +94,7 @@ function setupPasswordToggles() {
 }
 
 function setupForms() {
-  // Change Password Form
+
   const pwForm = document.getElementById('change-password-form');
   if (pwForm) {
     pwForm.addEventListener('submit', async (e) => {
@@ -144,7 +139,6 @@ function setupForms() {
     });
   }
 
-  // Admin Name Update Form
   const infoForm = document.getElementById('profile-info-form');
   if (infoForm) {
     infoForm.addEventListener('submit', async (e) => {
@@ -164,7 +158,7 @@ function setupForms() {
         const res = await api.put('/auth/profile', { name });
         if (res.success) {
           api.showToast('Profile name updated successfully!', 'success');
-          // Update cached user in localStorage
+
           const cachedUser = auth.getUser() || {};
           cachedUser.name = name;
           localStorage.setItem('labcare_user', JSON.stringify(cachedUser));

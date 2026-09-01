@@ -7,14 +7,12 @@ const { Op } = require('sequelize');
 
 const PORT = env.port || 3000;
 
-// Setup nightly background estimation and recalculation (Runs daily at midnight: 00:00)
 cron.schedule('0 0 * * *', async () => {
   console.log('[Cron Job] Starting nightly scheduled operational-hours accrual & EHI recalculation...');
   try {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const yesterdayDay = dayNames[(new Date().getDay() + 6) % 7];
 
-    // Find class schedules that took place
     const activeSchedules = await ClassSchedule.findAll({
       where: { session_day: yesterdayDay },
     });
@@ -28,7 +26,6 @@ cron.schedule('0 0 * * *', async () => {
       }
     }
 
-    // Recalculate EHI for all active equipment
     const allEquipment = await Equipment.findAll({ where: { status: { [Op.ne]: 'Scrapped' } } });
     for (const item of allEquipment) {
       const failureCount = await FaultReport.count({
@@ -95,7 +92,6 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('[Database] MySQL connection established successfully via Sequelize.');
 
-    // In development mode, auto-sync tables if they do not exist
     if (env.env === 'development') {
       await sequelize.sync({ alter: false });
       console.log('[Database] Sequelize models synchronized with database schema.');
@@ -115,8 +111,7 @@ async function startServer() {
   } catch (err) {
     console.error('[Startup Error] Unable to connect to MySQL database:', err.message);
     console.log('Ensure MySQL is running and DB credentials in .env are configured.');
-    
-    // Start HTTP server anyway to allow health checks and informative errors
+
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`[Warning] Server started on port ${PORT} with DB disconnected.`);
     });

@@ -60,7 +60,7 @@ async function seed() {
         purchase_date: '2023-08-20',
         expected_lifespan_hours: 3000,
         operational_hours: 2850,
-        status: 'Active', // Heavy usage -> High/Medium risk
+        status: 'Active', 
       },
       {
         name: 'Thermo Scientific Medifuge Centrifuge',
@@ -123,7 +123,7 @@ async function seed() {
 
     console.log('[Seeder] Creating sample fault reports and maintenance logs...');
     const report1 = await FaultReport.create({
-      equipment_id: createdEquipment[4].equipment_id, // Rotary Evaporator
+      equipment_id: createdEquipment[4].equipment_id, 
       reported_by: student.user_id,
       description: '[Thermal / Heat] Vacuum seal leakage and heating bath temperature fluctuation during distillation.',
       priority: 'High',
@@ -131,7 +131,7 @@ async function seed() {
     });
 
     const report2 = await FaultReport.create({
-      equipment_id: createdEquipment[1].equipment_id, // Spectrophotometer
+      equipment_id: createdEquipment[1].equipment_id, 
       reported_by: technologist.user_id,
       description: '[Display / Output Issue] Deuterium lamp intensity low, baseline noise exceeds calibration limits.',
       priority: 'Medium',

@@ -4,7 +4,6 @@ function renderSidebar(activePage = '') {
 
   const role = user.role || 'Student';
 
-  // Navigation Items with Role Permissions as specified in UI_UX_SPEC §3.1
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: 'bi-grid-1x2', href: 'dashboard.html', roles: ['Student', 'Technologist', 'Engineer', 'Admin'] },
     { id: 'scan-qr', label: 'Scan QR Code', icon: 'bi-qr-code-scan', href: 'scan-qr.html', roles: ['Student', 'Technologist', 'Engineer', 'Admin'] },
@@ -13,6 +12,7 @@ function renderSidebar(activePage = '') {
     { id: 'equipment', label: 'Equipment', icon: 'bi-box-seam', href: 'equipment.html', roles: ['Technologist', 'Engineer', 'Admin'] },
     { id: 'maintenance', label: 'Maintenance', icon: 'bi-wrench-adjustable', href: 'maintenance.html', roles: ['Technologist', 'Engineer', 'Admin'] },
     { id: 'predictions', label: 'Predictions', icon: 'bi-graph-up-arrow', href: 'predictions.html', roles: ['Technologist', 'Engineer', 'Admin'] },
+    { id: 'audit-report', label: 'Audit Reports', icon: 'bi-file-earmark-bar-graph', href: 'audit-report.html', roles: ['Technologist', 'Engineer', 'Admin'] },
     { id: 'users', label: 'User Management', icon: 'bi-people', href: 'users.html', roles: ['Admin'] },
   ];
 
@@ -58,7 +58,6 @@ function renderSidebar(activePage = '') {
     `;
   }
 
-  // Setup mobile toggle if present
   const toggleBtn = document.querySelector('.sidebar-toggle');
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
@@ -67,7 +66,6 @@ function renderSidebar(activePage = '') {
     });
   }
 
-  // Set topbar user initials and live date
   const dateEl = document.getElementById('current-date');
   if (dateEl) {
     const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };

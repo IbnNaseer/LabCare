@@ -1,7 +1,22 @@
 const { Op } = require('sequelize');
 const { Equipment, FaultReport, MaintenanceLog, Prediction, ClassSchedule, User } = require('../models');
 const { generateQR } = require('../services/qrService');
-const { calculateEHI } = require('../services/ehiService');
+const { calculateEHI, recalculateSingleEquipment } = require('../services/ehiService');
+
+const syncEquipmentOperationalStatus = async (item) => {
+  if (!item || item.status === 'Scrapped') return;
+  const activeCount = await FaultReport.count({
+    where: {
+      equipment_id: item.equipment_id,
+      status: { [Op.in]: ['Pending', 'In-Progress'] },
+    },
+  });
+  const correctStatus = activeCount > 0 ? 'Under Repair' : 'Active';
+  if (item.status !== correctStatus) {
+    item.status = correctStatus;
+    await item.save();
+  }
+};
 
 exports.list = async (req, res, next) => {
   try {
@@ -22,8 +37,10 @@ exports.list = async (req, res, next) => {
       where.category = category;
     }
 
-    if (status) {
+    if (status && status !== 'All') {
       where.status = status;
+    } else if (!status) {
+      where.status = { [Op.ne]: 'Scrapped' };
     }
 
     const { count, rows: equipmentList } = await Equipment.findAndCountAll({
@@ -40,6 +57,10 @@ exports.list = async (req, res, next) => {
         },
       ],
     });
+
+    for (const item of equipmentList) {
+      await syncEquipmentOperationalStatus(item);
+    }
 
     return res.status(200).json({
       success: true,
@@ -81,7 +102,8 @@ exports.getById = async (req, res, next) => {
       });
     }
 
-    // Compute live/current EHI snapshot
+    await syncEquipmentOperationalStatus(equipment);
+
     const failureCount = await FaultReport.count({
       where: {
         equipment_id: equipment.equipment_id,
@@ -135,7 +157,6 @@ exports.getByQR = async (req, res, next) => {
 
     const query = qrCode.trim();
 
-    // 1. Check exact QR code, exact serial number, or numeric ID
     const conditions = [
       { qr_code: query },
       { serial_number: query },
@@ -143,13 +164,11 @@ exports.getByQR = async (req, res, next) => {
       { serial_number: { [Op.like]: `%${query}%` } },
     ];
 
-    // If query is a pure number or "#1"
     const parsedId = parseInt(query.replace(/^#|^EQUIP-/i, ''), 10);
     if (!isNaN(parsedId) && parsedId > 0) {
       conditions.unshift({ equipment_id: parsedId });
     }
 
-    // Also try matching name
     conditions.push({ name: { [Op.like]: `%${query}%` } });
 
     const equipment = await Equipment.findOne({
@@ -172,6 +191,8 @@ exports.getByQR = async (req, res, next) => {
         error: `No equipment found matching asset tag "${query}". Please check the serial number on the device.`,
       });
     }
+
+    await syncEquipmentOperationalStatus(equipment);
 
     return res.status(200).json({
       success: true,
@@ -214,7 +235,7 @@ const convertLifespanToHours = (value, unit = 'Years') => {
   } else if (unit === 'Hours') {
     return Math.round(num);
   }
-  // Default is Years
+
   return Math.round(num * 2000);
 };
 
@@ -244,7 +265,6 @@ exports.create = async (req, res, next) => {
       });
     }
 
-    // Auto-generate serial number if blank or omitted
     if (!serial_number || !serial_number.trim()) {
       serial_number = await generateSerialNumber(category);
     } else {
@@ -269,12 +289,10 @@ exports.create = async (req, res, next) => {
       status,
     });
 
-    // Auto-generate QR code
     const qrPayload = await generateQR(equipment.equipment_id, equipment.serial_number);
     equipment.qr_code = qrPayload;
     await equipment.save();
 
-    // Generate initial baseline prediction snapshot
     const initialEHI = calculateEHI({
       operationalHours: parseFloat(equipment.operational_hours),
       expectedLifespanHours: equipment.expected_lifespan_hours,
@@ -330,7 +348,7 @@ exports.update = async (req, res, next) => {
     if (category !== undefined && category !== equipment.category) {
       categoryChanged = true;
       equipment.category = category;
-      // Regenerate serial number and QR code for the new category
+
       const newSerial = await generateSerialNumber(category);
       equipment.serial_number = newSerial;
       const newQr = await generateQR(equipment.equipment_id, newSerial);
@@ -342,28 +360,19 @@ exports.update = async (req, res, next) => {
     if (purchase_date !== undefined) equipment.purchase_date = purchase_date || null;
     if (expected_lifespan_hours !== undefined) equipment.expected_lifespan_hours = parseInt(expected_lifespan_hours, 10);
     if (operational_hours !== undefined) equipment.operational_hours = parseFloat(operational_hours);
-    if (status !== undefined) equipment.status = status;
+    if (status !== undefined) {
+      equipment.status = status;
+      if (status === 'Active') {
+        await FaultReport.update(
+          { status: 'Resolved', resolved_at: new Date() },
+          { where: { equipment_id: equipment.equipment_id, status: { [Op.in]: ['Pending', 'In-Progress'] } } }
+        );
+      }
+    }
 
     await equipment.save();
 
-    // Recalculate EHI snapshot
-    const failureCount = await FaultReport.count({
-      where: { equipment_id: equipment.equipment_id, status: ['Resolved', 'Scrapped'] }
-    });
-
-    const currentEHI = calculateEHI({
-      operationalHours: parseFloat(equipment.operational_hours),
-      expectedLifespanHours: equipment.expected_lifespan_hours,
-      failureCount,
-      daysSinceLastService: 30,
-    });
-
-    await Prediction.create({
-      equipment_id: equipment.equipment_id,
-      ehi_score: currentEHI.ehi,
-      risk_level: currentEHI.riskLevel,
-      computed_at: new Date(),
-    });
+    await recalculateSingleEquipment(equipment.equipment_id);
 
     const message = categoryChanged
       ? `Equipment updated! Category changed: New Serial (${equipment.serial_number}) & QR tag generated.`
@@ -403,7 +412,6 @@ exports.getHistory = async (req, res, next) => {
       order: [['service_date', 'DESC']],
     });
 
-    // Merge chronologically for the Equipment Details "History" tab
     const timeline = [];
 
     faults.forEach((f) => {
@@ -449,6 +457,122 @@ exports.getHistory = async (req, res, next) => {
       data: {
         equipment_id: id,
         timeline,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getSchedules = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const schedules = await ClassSchedule.findAll({
+      where: { equipment_id: id },
+      order: [['session_day', 'ASC'], ['start_time', 'ASC']],
+    });
+    return res.status(200).json({
+      success: true,
+      data: schedules,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.addSchedule = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { lab_name, session_day, start_time, end_time, duration_hours } = req.body;
+
+    if (!session_day || !start_time || !end_time) {
+      return res.status(400).json({
+        success: false,
+        error: 'Day, start time, and end time are required for class schedule.',
+      });
+    }
+
+    const calculatedHours = duration_hours ? parseFloat(duration_hours) : 3.0;
+
+    const schedule = await ClassSchedule.create({
+      equipment_id: parseInt(id, 10),
+      lab_name: lab_name ? lab_name.trim() : 'General Lab',
+      session_day,
+      start_time,
+      end_time,
+      duration_hours: calculatedHours,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Class practical schedule added successfully',
+      data: schedule,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteSchedule = async (req, res, next) => {
+  try {
+    const { scheduleId } = req.params;
+    const schedule = await ClassSchedule.findByPk(scheduleId);
+    if (!schedule) {
+      return res.status(404).json({
+        success: false,
+        error: 'Schedule not found',
+      });
+    }
+
+    await schedule.destroy();
+    return res.status(200).json({
+      success: true,
+      message: 'Class schedule removed successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.accrueUsage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { weeks = 1 } = req.body;
+
+    const equipment = await Equipment.findByPk(id);
+    if (!equipment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Equipment not found',
+      });
+    }
+
+    const schedules = await ClassSchedule.findAll({
+      where: { equipment_id: id },
+    });
+
+    const weeklyHours = schedules.reduce((sum, s) => sum + parseFloat(s.duration_hours || 0), 0);
+    const addedHours = Math.round(weeklyHours * parseFloat(weeks) * 10) / 10;
+
+    if (addedHours <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No weekly class sessions mapped to this equipment. Add class schedules first.',
+      });
+    }
+
+    equipment.operational_hours = parseFloat(equipment.operational_hours || 0) + addedHours;
+    await equipment.save();
+
+    await recalculateSingleEquipment(equipment.equipment_id);
+
+    return res.status(200).json({
+      success: true,
+      message: `Accrued ${addedHours} operational hours (${weeks} week(s) of practical classes). New Total: ${parseFloat(equipment.operational_hours).toFixed(1)} hrs.`,
+      data: {
+        equipment_id: equipment.equipment_id,
+        addedHours,
+        operational_hours: equipment.operational_hours,
       },
     });
   } catch (err) {
